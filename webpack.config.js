@@ -7,7 +7,7 @@ module.exports = {
   ],
   output: {
     path: 'public/build',
-    filename: '[name].js'
+    filename: 'bundle.min.js'
   },
   module: {
     loaders: [
@@ -15,5 +15,11 @@ module.exports = {
       {test: /\.js$/, loader: 'babel', exclude: /(node_modules|bower_components)/, query: { presets: ['react', 'es2015'] }},
     ]
   },
-  plugins: []
+  plugins: [
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+          warnings: false
+      }
+    })
+  ]
 };
