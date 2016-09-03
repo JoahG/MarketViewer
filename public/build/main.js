@@ -20335,16 +20335,16 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var MarketListComponent = function (_React$Component) {
-	  _inherits(MarketListComponent, _React$Component);
+	var MarketViewerComponent = function (_React$Component) {
+	  _inherits(MarketViewerComponent, _React$Component);
 	
-	  function MarketListComponent() {
-	    _classCallCheck(this, MarketListComponent);
+	  function MarketViewerComponent() {
+	    _classCallCheck(this, MarketViewerComponent);
 	
-	    return _possibleConstructorReturn(this, (MarketListComponent.__proto__ || Object.getPrototypeOf(MarketListComponent)).apply(this, arguments));
+	    return _possibleConstructorReturn(this, (MarketViewerComponent.__proto__ || Object.getPrototypeOf(MarketViewerComponent)).apply(this, arguments));
 	  }
 	
-	  _createClass(MarketListComponent, [{
+	  _createClass(MarketViewerComponent, [{
 	    key: 'componentWillMount',
 	    value: function componentWillMount() {
 	      new _ApiHelper2.default('exchanges', function (d, e) {
@@ -20354,20 +20354,20 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      return _react2.default.createElement('div', { className: 'marketlist-component' });
+	      return _react2.default.createElement('div', { className: 'MarketViewer-component' });
 	    }
 	  }]);
 	
-	  return MarketListComponent;
+	  return MarketViewerComponent;
 	}(_react2.default.Component);
 	
-	MarketListComponent.displayName = 'MarketListComponent';
+	MarketViewerComponent.displayName = 'MarketViewerComponent';
 	
 	// Uncomment properties you need
-	// MarketListComponent.propTypes = {};
-	// MarketListComponent.defaultProps = {};
+	// MarketViewerComponent.propTypes = {};
+	// MarketViewerComponent.defaultProps = {};
 	
-	exports.default = MarketListComponent;
+	exports.default = MarketViewerComponent;
 
 /***/ },
 /* 162 */
