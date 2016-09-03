@@ -26,4 +26,28 @@ aside.MarketList {
 
 section.MarketChart {
   flex: 1 0 0;
+  position: relative;
 }
+
+section.MarketChart:after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  line-height: calc(100vh - 98px);
+  color: #898989;
+  font-size: 24px;
+  text-align: center;
+  background: white;
+}
+
+section.MarketChart.empty:after {
+  content: 'Select a Market to view data.';
+}
+
+section.MarketChart.loading:after {
+  content: 'Loading...';
+}
+
+

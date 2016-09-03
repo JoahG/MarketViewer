@@ -1,11 +1,7 @@
 'use strict';
 
 import React from 'react';
-import ReactHighcharts from 'react-highcharts';
-
-const hcConfig = {
-  /* highcharts config */
-};
+import { ScatterChart } from 'rd3';
 
 class MarketChartComponent extends React.Component {
   constructor(props) {
@@ -13,18 +9,27 @@ class MarketChartComponent extends React.Component {
 
     this.state = {
       isLoading: false,
-      isEmpty: true
+      isEmpty: true,
+      chartConfig: {
+        title: this.props.selectedMarket.mkt_name
+      }
     }
   }
 
-  componentWillUpdate() {
-
+  componentWillUpdate(nextProps) {
+    this.setState({
+      isEmpty: false,
+      isLoading: !nextProps.selectedMarket.dataIsLoaded,
+      chartConfig: {
+        title: nextProps.selectedMarket.mkt_name
+      }
+    });
   }
 
   render() {
     return (
       <section className={ 'MarketChart' + (this.state.isLoading ? ' loading' : '') + (this.state.isEmpty ? ' empty' : '')}>
-        <ReactHighcharts config={ hcConfig } ref="chart" />
+        
       </section>
     );
   }

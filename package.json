@@ -2,14 +2,17 @@
   "name": "MarketViewer",
   "version": "1.0.0",
   "author": "Joah Gerstenberg",
+  "description": "SPA to view market data from Coinigy's API",
+  "repository": "https://github.com/JoahG/MarketViewer",
+  "license": "MIT",
   "dependencies": {
-    "highcharts": "^4.2.6",
+    "d3": "^3.5.0",
     "https": "^1.0.0",
-    "jsx-loader": "^0.13.2",
     "material-ui": "^0.15.4",
-    "react": "^0.14.7",
-    "react-dom": "^0.14.7",
-    "react-highcharts": "^10.0.0",
+    "rd3": "^0.7.1",
+    "react": "^15.3.1",
+    "react-d3": "^0.4.0",
+    "react-dom": "^15.3.1",
     "react-tap-event-plugin": "^1.0.0"
   },
   "devDependencies": {
@@ -24,7 +27,6 @@
     "statics": "~0.1.0",
     "webpack": "^1.12.13"
   },
-  "main": "./index.js",
   "scripts": {
     "start": "webpack --progress --colors --watch -d",
     "build": "webpack --progress --colors -p",
