@@ -35055,7 +35055,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _reactD = __webpack_require__(/*! react-d3 */ 395);
+	var _rd = __webpack_require__(/*! rd3 */ 395);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -35077,27 +35077,69 @@
 	      isLoading: false,
 	      isEmpty: true,
 	      chartConfig: {
-	        title: _this.props.selectedMarket.mkt_name
+	        title: _this.props.selectedMarket.mkt_name,
+	        width: 800,
+	        height: 500,
+	        data: [{
+	          name: 'series 1',
+	          values: [{ x: 0, y: 0 }]
+	        }]
 	      }
 	    };
 	    return _this;
 	  }
 	
 	  _createClass(MarketChartComponent, [{
-	    key: 'componentWillUpdate',
-	    value: function componentWillUpdate(nextProps) {
+	    key: 'componentWillReceiveProps',
+	    value: function componentWillReceiveProps(nextProps) {
 	      this.setState({
 	        isEmpty: false,
 	        isLoading: !nextProps.selectedMarket.dataIsLoaded,
 	        chartConfig: {
-	          title: nextProps.selectedMarket.mkt_name
+	          title: nextProps.selectedMarket.mkt_name,
+	          width: this.refs["chart-wrapper"].offsetWidth,
+	          height: this.refs["chart-wrapper"].offsetHeight,
+	          data: [{
+	            name: 'series 1',
+	            values: nextProps.selectedMarket.data.map(function (dataPoint) {
+	              return {
+	                y: parseFloat(dataPoint.price),
+	                x: dataPoint.time_local
+	              };
+	            })
+	          }]
 	        }
 	      });
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      return _react2.default.createElement('section', { className: 'MarketChart' + (this.state.isLoading ? ' loading' : '') + (this.state.isEmpty ? ' empty' : '') });
+	      return _react2.default.createElement(
+	        'section',
+	        { className: 'MarketChart' + (this.state.isLoading ? ' loading' : '') + (this.state.isEmpty ? ' empty' : '') },
+	        _react2.default.createElement(
+	          'div',
+	          { ref: 'chart-wrapper', className: 'chart-wrapper' },
+	          _react2.default.createElement(_rd.LineChart, {
+	            width: this.state.chartConfig.width,
+	            height: this.state.chartConfig.height,
+	            data: this.state.chartConfig.data,
+	            xAxisTickInterval: { unit: 'hour', interval: 1 },
+	            xAccessor: function xAccessor(d) {
+	              return new Date(d.x);
+	            },
+	            yAccessor: function yAccessor(d) {
+	              return d.y;
+	            },
+	            margins: {
+	              top: 20,
+	              right: 30,
+	              bottom: 50,
+	              left: 75
+	            }
+	          })
+	        )
+	      );
 	    }
 	  }]);
 	
@@ -35763,37 +35805,37 @@
 
 /***/ },
 /* 395 */
-/*!*****************************!*\
-  !*** ./~/react-d3/index.js ***!
-  \*****************************/
+/*!**********************************!*\
+  !*** ./~/rd3/build/cjs/index.js ***!
+  \**********************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	exports.BarChart = __webpack_require__(/*! ./barchart */ 396).BarChart;
-	exports.LineChart = __webpack_require__(/*! ./linechart */ 419).LineChart;
-	exports.PieChart = __webpack_require__(/*! ./piechart */ 425).PieChart;
-	exports.AreaChart = __webpack_require__(/*! ./areachart */ 430).AreaChart;
-	exports.Treemap = __webpack_require__(/*! ./treemap */ 435).Treemap;
-	exports.ScatterChart = __webpack_require__(/*! ./scatterchart */ 440).ScatterChart;
-	exports.CandlestickChart = __webpack_require__(/*! ./candlestick */ 445).CandlestickChart;
+	'use strict';
 	
-
+	exports.BarChart = __webpack_require__(/*! ./barchart */ 396).BarChart;
+	exports.LineChart = __webpack_require__(/*! ./linechart */ 423).LineChart;
+	exports.PieChart = __webpack_require__(/*! ./piechart */ 429).PieChart;
+	exports.AreaChart = __webpack_require__(/*! ./areachart */ 434).AreaChart;
+	exports.Treemap = __webpack_require__(/*! ./treemap */ 439).Treemap;
+	exports.ScatterChart = __webpack_require__(/*! ./scatterchart */ 444).ScatterChart;
+	exports.CandlestickChart = __webpack_require__(/*! ./candlestick */ 449).CandlestickChart;
 
 /***/ },
 /* 396 */
-/*!**************************************!*\
-  !*** ./~/react-d3/barchart/index.js ***!
-  \**************************************/
+/*!*******************************************!*\
+  !*** ./~/rd3/build/cjs/barchart/index.js ***!
+  \*******************************************/
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	
 	exports.BarChart = __webpack_require__(/*! ./BarChart */ 397);
 
-
 /***/ },
 /* 397 */
-/*!*****************************************!*\
-  !*** ./~/react-d3/barchart/BarChart.js ***!
-  \*****************************************/
+/*!**********************************************!*\
+  !*** ./~/rd3/build/cjs/barchart/BarChart.js ***!
+  \**********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -35801,163 +35843,221 @@
 	var React = __webpack_require__(/*! react */ 2);
 	var d3 = __webpack_require__(/*! d3 */ 398);
 	var DataSeries = __webpack_require__(/*! ./DataSeries */ 399);
-	var utils = __webpack_require__(/*! ../utils */ 402);
 	
-	var $__0=      __webpack_require__(/*! ../common */ 403),Chart=$__0.Chart,XAxis=$__0.XAxis,YAxis=$__0.YAxis;
-	var $__1=     __webpack_require__(/*! ../mixins */ 412),CartesianChartPropsMixin=$__1.CartesianChartPropsMixin,ViewBoxMixin=$__1.ViewBoxMixin;
+	var _require = __webpack_require__(/*! ../common */ 403);
+	
+	var Chart = _require.Chart;
+	var XAxis = _require.XAxis;
+	var YAxis = _require.YAxis;
+	var Tooltip = _require.Tooltip;
+	
+	var _require2 = __webpack_require__(/*! ../mixins */ 418);
+	
+	var CartesianChartPropsMixin = _require2.CartesianChartPropsMixin;
+	var DefaultAccessorsMixin = _require2.DefaultAccessorsMixin;
+	var ViewBoxMixin = _require2.ViewBoxMixin;
+	var TooltipMixin = _require2.TooltipMixin;
+	
 	
 	module.exports = React.createClass({
-	
-	  mixins: [ CartesianChartPropsMixin, ViewBoxMixin ],
 	
 	  displayName: 'BarChart',
 	
 	  propTypes: {
-	    chartClassName:         React.PropTypes.string,
-	    data:                   React.PropTypes.array.isRequired,
-	    hoverAnimation:         React.PropTypes.bool,
-	    height:                 React.PropTypes.number,
-	    margins:                React.PropTypes.object,
+	    chartClassName: React.PropTypes.string,
+	    data: React.PropTypes.array.isRequired,
+	    hoverAnimation: React.PropTypes.bool,
+	    margins: React.PropTypes.object,
 	    rangeRoundBandsPadding: React.PropTypes.number,
 	    // https://github.com/mbostock/d3/wiki/Stack-Layout#offset
-	    stackOffset:            React.PropTypes.oneOf(['silhouette', 'expand', 'wigget', 'zero']),
-	    valuesAccessor:         React.PropTypes.func,
-	    title:                  React.PropTypes.string,
-	    width:                  React.PropTypes.number,
-	    xAxisClassName:         React.PropTypes.string,
-	    yAxisClassName:         React.PropTypes.string,
-	    yAxisTickCount:         React.PropTypes.number,
+	    stackOffset: React.PropTypes.oneOf(['silhouette', 'expand', 'wigget', 'zero']),
+	    grouped: React.PropTypes.bool,
+	    valuesAccessor: React.PropTypes.func,
+	    title: React.PropTypes.string,
+	    xAxisClassName: React.PropTypes.string,
+	    yAxisClassName: React.PropTypes.string,
+	    yAxisTickCount: React.PropTypes.number,
+	    xAccessor: React.PropTypes.any, // TODO: prop types?
+	    yAccessor: React.PropTypes.any
 	  },
 	
-	  getDefaultProps:function() {
+	  mixins: [CartesianChartPropsMixin, DefaultAccessorsMixin, ViewBoxMixin, TooltipMixin],
+	
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      chartClassName:         'rd3-barchart',
-	      hoverAnimation:         true,
-	      margins:                {top: 10, right: 20, bottom: 40, left: 45},
+	      chartClassName: 'rd3-barchart',
+	      hoverAnimation: true,
+	      margins: { top: 10, right: 20, bottom: 40, left: 45 },
 	      rangeRoundBandsPadding: 0.25,
-	      stackOffset:            'zero',
-	      valuesAccessor:         function(d)  {return d.values;},
-	      xAxisClassName:         'rd3-barchart-xaxis',
-	      yAxisClassName:         'rd3-barchart-yaxis',
-	      yAxisTickCount:         4,
+	      stackOffset: 'zero',
+	      grouped: false,
+	      valuesAccessor: function valuesAccessor(d) {
+	        return d.values;
+	      },
+	      xAxisClassName: 'rd3-barchart-xaxis',
+	      yAxisClassName: 'rd3-barchart-yaxis',
+	      yAxisTickCount: 4
 	    };
 	  },
-	
-	  _getStackedValuesMaxY:function(_data) {
-	    // in stacked bar chart, the maximum height we need for 
+	  _getStackedValuesMaxY: function _getStackedValuesMaxY(_data) {
+	    // in stacked bar chart, the maximum height we need for
 	    // yScale domain is the sum of y0 + y
-	    var $__0=    this.props,valuesAccessor=$__0.valuesAccessor;
-	    return d3.max(_data, function(d) {
-	      return d3.max(valuesAccessor(d), function(d) {
-	        // where y0, y is generated by d3.layout.stack()
-	        return d.y0 + d.y;
+	    var valuesAccessor = this.props.valuesAccessor;
+	
+	    return d3.max(_data, function (d) {
+	      return d3.max(valuesAccessor(d), function (d2) {
+	        return(
+	          // where y0, y is generated by d3.layout.stack()
+	          d2.y0 + d2.y
+	        );
 	      });
 	    });
 	  },
+	  _getStackedValuesMinY: function _getStackedValuesMinY(_data) {
+	    var valuesAccessor = this.props.valuesAccessor;
 	
-	  _getLabels:function(firstSeries) {
+	    return d3.min(_data, function (d) {
+	      return d3.min(valuesAccessor(d), function (d2) {
+	        return(
+	          // where y0, y is generated by d3.layout.stack()
+	          d2.y0 + d2.y
+	        );
+	      });
+	    });
+	  },
+	  _getLabels: function _getLabels(firstSeries) {
 	    // we only need first series to get all the labels
-	    var $__0=     this.props,valuesAccessor=$__0.valuesAccessor,xAccessor=$__0.xAccessor;
+	    var _props = this.props;
+	    var valuesAccessor = _props.valuesAccessor;
+	    var xAccessor = _props.xAccessor;
+	
 	    return valuesAccessor(firstSeries).map(xAccessor);
 	  },
+	  _stack: function _stack() {
+	    // Only support columns with all positive or all negative values
+	    // https://github.com/mbostock/d3/issues/2265
+	    var _props2 = this.props;
+	    var stackOffset = _props2.stackOffset;
+	    var xAccessor = _props2.xAccessor;
+	    var yAccessor = _props2.yAccessor;
+	    var valuesAccessor = _props2.valuesAccessor;
 	
-	  _stack:function() {
-	    var $__0=       this.props,stackOffset=$__0.stackOffset,xAccessor=$__0.xAccessor,yAccessor=$__0.yAccessor,valuesAccessor=$__0.valuesAccessor;
-	    return d3.layout.stack()
-	                    .offset(stackOffset)
-	                    .x(xAccessor)
-	                    .y(yAccessor)
-	                    .values(valuesAccessor);
+	    return d3.layout.stack().offset(stackOffset).x(xAccessor).y(yAccessor).values(valuesAccessor);
 	  },
-	
-	  render:function() {
-	
+	  render: function render() {
 	    var props = this.props;
+	    var yOrient = this.getYOrient();
 	
+	    var domain = props.domain || {};
+	
+	    if (props.data.length === 0) {
+	      return null;
+	    }
 	    var _data = this._stack()(props.data);
 	
-	    var margins = props.margins;
+	    var _getDimensions = this.getDimensions();
 	
-	    var innerHeight = props.height - ( margins.top + margins.bottom );
-	    var innerWidth = props.width - ( margins.left + margins.right );
+	    var innerHeight = _getDimensions.innerHeight;
+	    var innerWidth = _getDimensions.innerWidth;
+	    var trans = _getDimensions.trans;
+	    var svgMargins = _getDimensions.svgMargins;
 	
-	    var xScale = d3.scale.ordinal()
-	      .domain(this._getLabels(_data[0]))
-	      .rangeRoundBands([0, innerWidth], props.rangeRoundBandsPadding);
 	
-	    var yScale = d3.scale.linear()
-	      .range([innerHeight, 0])
-	      .domain([0, this._getStackedValuesMaxY(_data)]);
+	    var xDomain = domain.x || this._getLabels(_data[0]);
+	    var xScale = d3.scale.ordinal().domain(xDomain).rangeRoundBands([0, innerWidth], props.rangeRoundBandsPadding);
 	
-	    var trans = ("translate(" +  margins.left + "," +  margins.top + ")");
+	    var minYDomain = Math.min(0, this._getStackedValuesMinY(_data));
+	    var maxYDomain = this._getStackedValuesMaxY(_data);
+	    var yDomain = domain.y || [minYDomain, maxYDomain];
+	    var yScale = d3.scale.linear().range([innerHeight, 0]).domain(yDomain);
 	
-	    return (
-	      React.createElement(Chart, {
-	        viewBox: props.viewBox, 
-	        legend: props.legend, 
-	        data: props.data, 
-	        margins: props.margins, 
-	        colors: props.colors, 
-	        colorAccessor: props.colorAccessor, 
-	        width: props.width, 
-	        height: props.height, 
-	        title: props.title
-	      }, 
-	        React.createElement("g", {transform: trans, className: props.chartClassName}, 
+	    var series = props.data.map(function (item) {
+	      return item.name;
+	    });
+	
+	    return React.createElement(
+	      'span',
+	      null,
+	      React.createElement(
+	        Chart,
+	        {
+	          viewBox: this.getViewBox(),
+	          legend: props.legend,
+	          data: props.data,
+	          margins: props.margins,
+	          colors: props.colors,
+	          colorAccessor: props.colorAccessor,
+	          width: props.width,
+	          height: props.height,
+	          title: props.title,
+	          shouldUpdate: !this.state.changeState
+	        },
+	        React.createElement(
+	          'g',
+	          { transform: trans, className: props.chartClassName },
 	          React.createElement(YAxis, {
-	            yAxisClassName: props.yAxisClassName, 
-	            yAxisTickValues: props.yAxisTickValues, 
-	            yAxisLabel: props.yAxisLabel, 
-	            yAxisLabelOffset: props.yAxisLabelOffset, 
-	            yScale: yScale, 
-	            margins: margins, 
-	            yAxisTickCount: props.yAxisTickCount, 
-	            tickFormatting: props.yAxisFormatter, 
-	            width: innerWidth, 
-	            height: innerHeight, 
-	            xOrient: props.xOrient, 
-	            yOrient: props.yOrient, 
-	            gridHorizontal: props.gridHorizontal, 
-	            gridHorizontalStroke: props.gridHorizontalStroke, 
-	            gridHorizontalStrokeWidth: props.gridHorizontalStrokeWidth, 
-	            gridHorizontalStrokeDash: props.gridHorizontalStrokeDash}
-	          ), 
+	            yAxisClassName: props.yAxisClassName,
+	            yAxisTickValues: props.yAxisTickValues,
+	            yAxisLabel: props.yAxisLabel,
+	            yAxisLabelOffset: props.yAxisLabelOffset,
+	            yScale: yScale,
+	            margins: svgMargins,
+	            yAxisTickCount: props.yAxisTickCount,
+	            tickFormatting: props.yAxisFormatter,
+	            tickStroke: props.xAxisTickStroke,
+	            tickTextStroke: props.xAxisTickTextStroke,
+	            width: innerWidth,
+	            height: innerHeight,
+	            horizontalChart: props.horizontal,
+	            xOrient: props.xOrient,
+	            yOrient: yOrient,
+	            gridHorizontal: props.gridHorizontal,
+	            gridHorizontalStroke: props.gridHorizontalStroke,
+	            gridHorizontalStrokeWidth: props.gridHorizontalStrokeWidth,
+	            gridHorizontalStrokeDash: props.gridHorizontalStrokeDash
+	          }),
 	          React.createElement(XAxis, {
-	            xAxisClassName: props.xAxisClassName, 
-	            xAxisTickValues: props.xAxisTickValues, 
-	            xAxisLabel: props.xAxisLabel, 
-	            xAxisLabelOffset: props.xAxisLabelOffset, 
-	            xScale: xScale, 
-	            margins: margins, 
-	            tickFormatting: props.xAxisFormatter, 
-	            width: innerWidth, 
-	            height: innerHeight, 
-	            xOrient: props.xOrient, 
-	            yOrient: props.yOrient, 
-	            gridVertical: props.gridVertical, 
-	            gridVerticalStroke: props.gridVerticalStroke, 
-	            gridVerticalStrokeWidth: props.gridVerticalStrokeWidth, 
-	            gridVerticalStrokeDash: props.gridVerticalStrokeDash}
-	          ), 
+	            xAxisClassName: props.xAxisClassName,
+	            xAxisTickValues: props.xAxisTickValues,
+	            xAxisLabel: props.xAxisLabel,
+	            xAxisLabelOffset: props.xAxisLabelOffset,
+	            xScale: xScale,
+	            margins: svgMargins,
+	            tickFormatting: props.xAxisFormatter,
+	            tickStroke: props.yAxisTickStroke,
+	            tickTextStroke: props.yAxisTickTextStroke,
+	            width: innerWidth,
+	            height: innerHeight,
+	            horizontalChart: props.horizontal,
+	            xOrient: props.xOrient,
+	            yOrient: yOrient,
+	            gridVertical: props.gridVertical,
+	            gridVerticalStroke: props.gridVerticalStroke,
+	            gridVerticalStrokeWidth: props.gridVerticalStrokeWidth,
+	            gridVerticalStrokeDash: props.gridVerticalStrokeDash
+	          }),
 	          React.createElement(DataSeries, {
-	            yScale: yScale, 
-	            xScale: xScale, 
-	            margins: margins, 
-	            _data: _data, 
-	            width: innerWidth, 
-	            height: innerHeight, 
-	            colors: props.colors, 
-	            colorAccessor: props.colorAccessor, 
-	            hoverAnimation: props.hoverAnimation, 
-	            valuesAccessor: props.valuesAccessor}
-	            )
+	            yScale: yScale,
+	            xScale: xScale,
+	            margins: svgMargins,
+	            _data: _data,
+	            series: series,
+	            width: innerWidth,
+	            height: innerHeight,
+	            grouped: props.grouped,
+	            colors: props.colors,
+	            colorAccessor: props.colorAccessor,
+	            hoverAnimation: props.hoverAnimation,
+	            valuesAccessor: props.valuesAccessor,
+	            onMouseOver: this.onMouseOver,
+	            onMouseLeave: this.onMouseLeave
+	          })
 	        )
-	      )
+	      ),
+	      props.showTooltip ? React.createElement(Tooltip, this.state.tooltip) : null
 	    );
 	  }
-	
 	});
-
 
 /***/ },
 /* 398 */
@@ -45523,15 +45623,14 @@
 
 /***/ },
 /* 399 */
-/*!*******************************************!*\
-  !*** ./~/react-d3/barchart/DataSeries.js ***!
-  \*******************************************/
+/*!************************************************!*\
+  !*** ./~/rd3/build/cjs/barchart/DataSeries.js ***!
+  \************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
 	var BarContainer = __webpack_require__(/*! ./BarContainer */ 400);
 	
 	module.exports = React.createClass({
@@ -45539,118 +45638,154 @@
 	  displayName: 'DataSeries',
 	
 	  propTypes: {
-	    _data:          React.PropTypes.array,
-	    colors:         React.PropTypes.func,
-	    colorAccessor:  React.PropTypes.func,
-	    height:         React.PropTypes.number,
-	    width:          React.PropTypes.number,
+	    _data: React.PropTypes.array,
+	    series: React.PropTypes.array,
+	    grouped: React.PropTypes.bool,
+	    colors: React.PropTypes.func,
+	    colorAccessor: React.PropTypes.func,
+	    height: React.PropTypes.number,
+	    width: React.PropTypes.number,
 	    valuesAccessor: React.PropTypes.func,
+	    onMouseOver: React.PropTypes.func,
+	    onMouseLeave: React.PropTypes.func,
+	    hoverAnimation: React.PropTypes.any, // TODO: prop types?
+	    xScale: React.PropTypes.any,
+	    yScale: React.PropTypes.any
 	  },
 	
-	  render:function() {
-	    return (
-	      React.createElement("g", null, this._renderBarSeries())
+	  _renderBarSeries: function _renderBarSeries() {
+	    var _this = this;
+	
+	    var _props = this.props;
+	    var _data = _props._data;
+	    var valuesAccessor = _props.valuesAccessor;
+	
+	    return _data.map(function (layer, seriesIdx) {
+	      return valuesAccessor(layer).map(function (segment) {
+	        return _this._renderBarContainer(segment, seriesIdx);
+	      });
+	    });
+	  },
+	  _renderBarContainer: function _renderBarContainer(segment, seriesIdx) {
+	    var _props2 = this.props;
+	    var colors = _props2.colors;
+	    var colorAccessor = _props2.colorAccessor;
+	    var grouped = _props2.grouped;
+	    var hoverAnimation = _props2.hoverAnimation;
+	    var series = _props2.series;
+	    var xScale = _props2.xScale;
+	    var yScale = _props2.yScale;
+	
+	    var barHeight = Math.abs(yScale(0) - yScale(segment.y));
+	    var y = grouped ? yScale(segment.y) : yScale(segment.y0 + segment.y);
+	    return React.createElement(BarContainer, {
+	      height: barHeight,
+	      width: grouped ? xScale.rangeBand() / series.length : xScale.rangeBand(),
+	      x: grouped ? xScale(segment.x) + xScale.rangeBand() / series.length * seriesIdx : xScale(segment.x),
+	      y: segment.y >= 0 ? y : y - barHeight,
+	      fill: colors(colorAccessor(segment, seriesIdx)),
+	      hoverAnimation: hoverAnimation,
+	      onMouseOver: this.props.onMouseOver,
+	      onMouseLeave: this.props.onMouseLeave,
+	      dataPoint: {
+	        xValue: segment.x,
+	        yValue: segment.y,
+	        seriesName: this.props.series[seriesIdx]
+	      }
+	    });
+	  },
+	  render: function render() {
+	    return React.createElement(
+	      'g',
+	      null,
+	      this._renderBarSeries()
 	    );
-	  },
-	
-	  _renderBarSeries:function() {
-	    var $__0=     this.props,_data=$__0._data,valuesAccessor=$__0.valuesAccessor;
-	    return _data.map(function(layer, seriesIdx)  {
-	      return valuesAccessor(layer)
-	             .map(function(segment)  {return this._renderBarContainer(segment, seriesIdx);}.bind(this))
-	    }.bind(this));
-	  },
-	
-	  _renderBarContainer:function(segment, seriesIdx) {
-	    var $__0=         this.props,colors=$__0.colors,colorAccessor=$__0.colorAccessor,height=$__0.height,hoverAnimation=$__0.hoverAnimation,xScale=$__0.xScale,yScale=$__0.yScale;
-	    return (
-	      React.createElement(BarContainer, {
-	        height: height - yScale(segment.y), 
-	        width: xScale.rangeBand(), 
-	        x: xScale(segment.x), 
-	        y: yScale( segment.y0 + segment.y), 
-	        fill: colors(colorAccessor(segment, seriesIdx)), 
-	        hoverAnimation: hoverAnimation}
-	      )
-	    )
 	  }
-	
 	});
-
 
 /***/ },
 /* 400 */
-/*!*********************************************!*\
-  !*** ./~/react-d3/barchart/BarContainer.js ***!
-  \*********************************************/
+/*!**************************************************!*\
+  !*** ./~/rd3/build/cjs/barchart/BarContainer.js ***!
+  \**************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
 	var React = __webpack_require__(/*! react */ 2);
+	
+	var _require = __webpack_require__(/*! react-dom */ 35);
+	
+	var findDOMNode = _require.findDOMNode;
+	
 	var Bar = __webpack_require__(/*! ./Bar */ 401);
 	var shade = __webpack_require__(/*! ../utils */ 402).shade;
 	
-	module.exports = React.createClass({displayName: "exports",
+	module.exports = React.createClass({
+	  displayName: 'exports',
+	
 	
 	  propTypes: {
 	    fill: React.PropTypes.string,
-	  },
+	    onMouseOver: React.PropTypes.func,
+	    onMouseLeave: React.PropTypes.func,
+	    dataPoint: React.PropTypes.any },
 	
-	  getDefaultProps:function() {
+	  // TODO: prop types?
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      fill: '#3182BD'
 	    };
 	  },
-	
-	  getInitialState:function() {
+	  getInitialState: function getInitialState() {
 	    return {
 	      // fill is named as fill instead of initialFill to avoid
 	      // confusion when passing down props from top parent
 	      fill: this.props.fill
 	    };
 	  },
-	
-	  render:function() {
-	
-	    var props = this.props;
-	
-	    return (
-	      React.createElement(Bar, React.__spread({}, 
-	        props, 
-	        {fill: this.state.fill, 
-	        handleMouseOver: props.hoverAnimation ? this._animateBar : null, 
-	        handleMouseLeave: props.hoverAnimation ? this._restoreBar : null})
-	      )
-	    );
-	  },
-	
-	  _animateBar:function() {
-	    this.setState({ 
+	  _animateBar: function _animateBar() {
+	    var rect = findDOMNode(this).getBoundingClientRect();
+	    this.props.onMouseOver.call(this, rect.right, rect.top, this.props.dataPoint);
+	    this.setState({
 	      fill: shade(this.props.fill, 0.2)
 	    });
 	  },
-	
-	  _restoreBar:function() {
-	    this.setState({ 
+	  _restoreBar: function _restoreBar() {
+	    this.props.onMouseLeave.call(this);
+	    this.setState({
 	      fill: this.props.fill
 	    });
 	  },
+	  render: function render() {
+	    var props = this.props;
+	
+	    return React.createElement(Bar, _extends({}, props, {
+	      fill: this.state.fill,
+	      handleMouseOver: props.hoverAnimation ? this._animateBar : null,
+	      handleMouseLeave: props.hoverAnimation ? this._restoreBar : null
+	    }));
+	  }
 	});
-
 
 /***/ },
 /* 401 */
-/*!************************************!*\
-  !*** ./~/react-d3/barchart/Bar.js ***!
-  \************************************/
+/*!*****************************************!*\
+  !*** ./~/rd3/build/cjs/barchart/Bar.js ***!
+  \*****************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
 	var React = __webpack_require__(/*! react */ 2);
 	
-	module.exports = React.createClass({displayName: "exports",
+	module.exports = React.createClass({
+	  displayName: 'exports',
+	
 	
 	  propTypes: {
 	    fill: React.PropTypes.string,
@@ -45658,79 +45793,87 @@
 	    height: React.PropTypes.number,
 	    x: React.PropTypes.number,
 	    y: React.PropTypes.number,
-	    className: React.PropTypes.string
+	    className: React.PropTypes.string,
+	    handleMouseOver: React.PropTypes.func,
+	    handleMouseLeave: React.PropTypes.func
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      offset: 0,
 	      className: 'rd3-barchart-bar'
 	    };
 	  },
-	
-	  render:function() {
-	    return (
-	      React.createElement("rect", React.__spread({
-	        className: "rd3-barchart-bar"}, 
-	        this.props, 
-	        {fill: this.props.fill, 
-	        onMouseOver: this.props.handleMouseOver, 
-	        onMouseLeave: this.props.handleMouseLeave})
-	      )
-	    );
+	  render: function render() {
+	    return React.createElement('rect', _extends({
+	      className: 'rd3-barchart-bar'
+	    }, this.props, {
+	      fill: this.props.fill,
+	      onMouseOver: this.props.handleMouseOver,
+	      onMouseLeave: this.props.handleMouseLeave
+	    }));
 	  }
 	});
 
-
 /***/ },
 /* 402 */
-/*!***********************************!*\
-  !*** ./~/react-d3/utils/index.js ***!
-  \***********************************/
+/*!****************************************!*\
+  !*** ./~/rd3/build/cjs/utils/index.js ***!
+  \****************************************/
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	
 	var d3 = __webpack_require__(/*! d3 */ 398);
 	
+	exports.calculateScales = function (width, height, xValues, yValues) {
+	  var xDomain = arguments.length <= 4 || arguments[4] === undefined ? [] : arguments[4];
+	  var yDomain = arguments.length <= 5 || arguments[5] === undefined ? [] : arguments[5];
 	
-	exports.calculateScales = function(chartWidth, chartHeight, xValues, yValues)  {
-	
-	  var xScale, yScale;
-	
+	  var xScale = void 0;
 	  if (xValues.length > 0 && Object.prototype.toString.call(xValues[0]) === '[object Date]') {
-	    xScale = d3.time.scale()
-	      .range([0, chartWidth]);
+	    xScale = d3.time.scale().range([0, width]);
 	  } else {
-	    xScale = d3.scale.linear()
-	      .range([0, chartWidth]);
+	    xScale = d3.scale.linear().range([0, width]);
 	  }
-	  xScale.domain(d3.extent(xValues));
+	  var xdomain = d3.extent(xValues);
+	  if (xDomain[0] !== undefined && xDomain[0] !== null) xdomain[0] = xDomain[0];
+	  if (xDomain[1] !== undefined && xDomain[1] !== null) xdomain[1] = xDomain[1];
+	  xScale.domain(xdomain);
 	
+	  var yScale = void 0;
 	  if (yValues.length > 0 && Object.prototype.toString.call(yValues[0]) === '[object Date]') {
-	    yScale = d3.time.scale()
-	      .range([chartHeight, 0]);
+	    yScale = d3.time.scale().range([height, 0]);
 	  } else {
-	    yScale = d3.scale.linear()
-	      .range([chartHeight, 0]);
+	    yScale = d3.scale.linear().range([height, 0]);
 	  }
 	
-	  yScale.domain(d3.extent(yValues));
+	  var ydomain = d3.extent(yValues);
+	  if (yDomain[0] !== undefined && yDomain[0] !== null) ydomain[0] = yDomain[0];
+	  if (yDomain[1] !== undefined && yDomain[1] !== null) ydomain[1] = yDomain[1];
+	  yScale.domain(ydomain);
 	
 	  return {
 	    xScale: xScale,
 	    yScale: yScale
 	  };
-	
 	};
 	
 	// debounce from Underscore.js
 	// MIT License: https://raw.githubusercontent.com/jashkenas/underscore/master/LICENSE
 	// Copyright (c) 2009-2014 Jeremy Ashkenas, DocumentCloud and Investigative
 	// Reporters & Editors
-	exports.debounce = function(func, wait, immediate) {
-	  var timeout;
-	  return function() {
-	    var context = this, args = arguments;
-	    var later = function() {
+	exports.debounce = function (func, wait, immediate) {
+	  var timeout = void 0;
+	  return function debounce() {
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    var context = this;
+	    var later = function later() {
 	      timeout = null;
 	      if (!immediate) {
 	        func.apply(context, args);
@@ -45743,16 +45886,14 @@
 	  };
 	};
 	
-	exports.flattenData = function(data, xAccessor, yAccessor)  {
-	
+	exports.flattenData = function (data, xAccessor, yAccessor) {
 	  var allValues = [];
 	  var xValues = [];
 	  var yValues = [];
 	  var coincidentCoordinateCheck = {};
 	
-	  data.forEach( function(series, i)  {
-	    series.values.forEach( function(item, j)  {
-	
+	  data.forEach(function (series, i) {
+	    series.values.forEach(function (item, j) {
 	      var x = xAccessor(item);
 	
 	      // Check for NaN since d3's Voronoi cannot handle NaN values
@@ -45766,8 +45907,8 @@
 	      var y = yAccessor(item);
 	      // when yAccessor returns an object (as in the case of candlestick)
 	      // iterate over the keys and push all the values to yValues array
-	      var yNode;
-	      if (typeof y === 'object' && Object.keys(y).length > 0) {
+	      var yNode = void 0;
+	      if ((typeof y === 'undefined' ? 'undefined' : _typeof(y)) === 'object' && Object.keys(y).length > 0) {
 	        Object.keys(y).forEach(function (key) {
 	          // Check for NaN since d3's Voronoi cannot handle NaN values
 	          // Go ahead and Proceed to next iteration since we don't want NaN
@@ -45791,7 +45932,7 @@
 	        yNode = y;
 	      }
 	
-	      var xyCoords = (x + "-" + yNode);
+	      var xyCoords = x + '-' + yNode;
 	      if (coincidentCoordinateCheck.hasOwnProperty(xyCoords)) {
 	        // Proceed to next iteration if the x y pair already exists
 	        // d3's Voronoi cannot handle NaN values or coincident coords
@@ -45804,7 +45945,7 @@
 	      var pointItem = {
 	        coord: {
 	          x: x,
-	          y: yNode,
+	          y: yNode
 	        },
 	        d: item,
 	        id: series.name + j,
@@ -45815,70 +45956,70 @@
 	    });
 	  });
 	
-	  return {
-	    allValues: allValues,
-	    xValues: xValues,
-	    yValues: yValues
-	  };
+	  return { allValues: allValues, xValues: xValues, yValues: yValues };
 	};
 	
-	
-	exports.shade = function(hex, percent)  {
-	
-	  var R, G, B, red, green, blue, number;
-	  var min = Math.min, round = Math.round;
-	  if(hex.length !== 7) { return hex; }
-	  number = parseInt(hex.slice(1), 16);
-	  R = number >> 16;
-	  G = number >> 8 & 0xFF;
-	  B = number & 0xFF;
-	  red = min( 255, round( ( 1 + percent ) * R )).toString(16);
+	exports.shade = function (hex, percent) {
+	  var red = void 0;
+	  var green = void 0;
+	  var blue = void 0;
+	  var min = Math.min;
+	  var round = Math.round;
+	  if (hex.length !== 7) {
+	    return hex;
+	  }
+	  var number = parseInt(hex.slice(1), 16);
+	  var R = number >> 16;
+	  var G = number >> 8 & 0xFF;
+	  var B = number & 0xFF;
+	  red = min(255, round((1 + percent) * R)).toString(16);
 	  if (red.length === 1) red = '0' + red;
-	  green = min( 255, round( ( 1 + percent ) * G )).toString(16);
+	  green = min(255, round((1 + percent) * G)).toString(16);
 	  if (green.length === 1) green = '0' + green;
-	  blue = min( 255, round( ( 1 + percent ) * B )).toString(16);
+	  blue = min(255, round((1 + percent) * B)).toString(16);
 	  if (blue.length === 1) blue = '0' + blue;
-	  return ("#" +  red +  green +  blue);
-	
+	  return '#' + red + green + blue;
 	};
-
 
 /***/ },
 /* 403 */
-/*!************************************!*\
-  !*** ./~/react-d3/common/index.js ***!
-  \************************************/
+/*!*****************************************!*\
+  !*** ./~/rd3/build/cjs/common/index.js ***!
+  \*****************************************/
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	
 	exports.XAxis = __webpack_require__(/*! ./axes */ 404).XAxis;
 	exports.YAxis = __webpack_require__(/*! ./axes */ 404).YAxis;
 	exports.Chart = __webpack_require__(/*! ./charts */ 410).Chart;
 	exports.LegendChart = __webpack_require__(/*! ./charts */ 410).LegendChart;
-	exports.Legend = __webpack_require__(/*! ./Legend */ 417);
-	exports.Voronoi = __webpack_require__(/*! ./Voronoi */ 418);
-
+	exports.Legend = __webpack_require__(/*! ./Legend */ 414);
+	exports.Tooltip = __webpack_require__(/*! ./Tooltip */ 415);
+	exports.Voronoi = __webpack_require__(/*! ./Voronoi */ 416);
 
 /***/ },
 /* 404 */
-/*!*****************************************!*\
-  !*** ./~/react-d3/common/axes/index.js ***!
-  \*****************************************/
+/*!**********************************************!*\
+  !*** ./~/rd3/build/cjs/common/axes/index.js ***!
+  \**********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	
 	exports.XAxis = __webpack_require__(/*! ./XAxis */ 405);
 	exports.YAxis = __webpack_require__(/*! ./YAxis */ 409);
 
-
 /***/ },
 /* 405 */
-/*!*****************************************!*\
-  !*** ./~/react-d3/common/axes/XAxis.js ***!
-  \*****************************************/
+/*!**********************************************!*\
+  !*** ./~/rd3/build/cjs/common/axes/XAxis.js ***!
+  \**********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
 	var React = __webpack_require__(/*! react */ 2);
 	var d3 = __webpack_require__(/*! d3 */ 398);
@@ -45891,46 +46032,47 @@
 	  displayName: 'XAxis',
 	
 	  propTypes: {
-	    fill:            React.PropTypes.string,
-	    height:          React.PropTypes.number.isRequired,
-	    width:           React.PropTypes.number.isRequired,
-	    stroke:          React.PropTypes.string,
-	    strokeWidth:     React.PropTypes.string,
-	    tickStroke:      React.PropTypes.string,
-	    xAxisClassName:  React.PropTypes.string,
-	    xAxisLabel:      React.PropTypes.string,
+	    fill: React.PropTypes.string,
+	    height: React.PropTypes.number.isRequired,
+	    width: React.PropTypes.number.isRequired,
+	    horizontalChart: React.PropTypes.bool,
+	    stroke: React.PropTypes.string,
+	    strokeWidth: React.PropTypes.string,
+	    tickStroke: React.PropTypes.string,
+	    tickTextStroke: React.PropTypes.string,
+	    xAxisClassName: React.PropTypes.string,
+	    xAxisLabel: React.PropTypes.string,
 	    xAxisTickValues: React.PropTypes.array,
-	    xAxisOffset:     React.PropTypes.number,
-	    xScale:          React.PropTypes.func.isRequired,
-	    xOrient:         React.PropTypes.oneOf(['top', 'bottom']),
-	    yOrient:         React.PropTypes.oneOf(['left', 'right']),
-	    gridVertical:  React.PropTypes.bool,
+	    xAxisOffset: React.PropTypes.number,
+	    xScale: React.PropTypes.func.isRequired,
+	    xOrient: React.PropTypes.oneOf(['top', 'bottom']),
+	    yOrient: React.PropTypes.oneOf(['left', 'right']),
+	    gridVertical: React.PropTypes.bool,
 	    gridVerticalStroke: React.PropTypes.string,
 	    gridVerticalStrokeWidth: React.PropTypes.number,
 	    gridVerticalStrokeDash: React.PropTypes.string
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      fill:            'none',
-	      stroke:          'none',
-	      strokeWidth:     '1',
-	      tickStroke:      '#000',
-	      xAxisClassName:  'rd3-x-axis',
-	      xAxisLabel:      '',
+	      fill: 'none',
+	      stroke: 'none',
+	      strokeWidth: '1',
+	      tickStroke: '#000',
+	      xAxisClassName: 'rd3-x-axis',
+	      xAxisLabel: '',
 	      xAxisLabelOffset: 10,
-	      xAxisOffset:      0,
-	      xOrient:         'bottom',
-	      yOrient:         'left'
+	      xAxisOffset: 0,
+	      xOrient: 'bottom',
+	      yOrient: 'left'
 	    };
 	  },
-	
-	  render:function() {
+	  render: function render() {
 	    var props = this.props;
 	
-	    var t = ("translate(0 ," + (props.xAxisOffset + props.height) + ")");
+	    var t = 'translate(0 ,' + (props.xAxisOffset + props.height) + ')';
 	
-	    var tickArguments;
+	    var tickArguments = void 0;
 	    if (typeof props.xAxisTickCount !== 'undefined') {
 	      tickArguments = [props.xAxisTickCount];
 	    }
@@ -45939,60 +46081,60 @@
 	      tickArguments = [d3.time[props.xAxisTickInterval.unit], props.xAxisTickInterval.interval];
 	    }
 	
-	    return (
-	      React.createElement("g", {
-	        className: props.xAxisClassName, 
+	    return React.createElement(
+	      'g',
+	      {
+	        className: props.xAxisClassName,
 	        transform: t
-	      }, 
-	        React.createElement(AxisTicks, {
-	          tickValues: props.xAxisTickValues, 
-	          tickFormatting: props.tickFormatting, 
-	          tickArguments: tickArguments, 
-	          tickStroke: props.tickStroke, 
-	          tickTextStroke: props.tickTextStroke, 
-	          innerTickSize: props.tickSize, 
-	          scale: props.xScale, 
-	          orient: props.xOrient, 
-	          orient2nd: props.yOrient, 
-	          height: props.height, 
-	          width: props.width, 
-	          gridVertical: props.gridVertical, 
-	          gridVerticalStroke: props.gridVerticalStroke, 
-	          gridVerticalStrokeWidth: props.gridVerticalStrokeWidth, 
-	          gridVerticalStrokeDash: props.gridVerticalStrokeDash}
-	        ), 
-	        React.createElement(AxisLine, React.__spread({
-	          scale: props.xScale, 
-	          stroke: props.stroke, 
-	          orient: props.xOrient, 
-	          outerTickSize: props.tickSize}, 
-	          props)
-	        ), 
-	        React.createElement(Label, {
-	          label: props.xAxisLabel, 
-	          offset: props.xAxisLabelOffset, 
-	          orient: props.xOrient, 
-	          margins: props.margins, 
-	          width: props.width}
-	          )
-	      )
+	      },
+	      React.createElement(AxisTicks, {
+	        tickValues: props.xAxisTickValues,
+	        tickFormatting: props.tickFormatting,
+	        tickArguments: tickArguments,
+	        tickStroke: props.tickStroke,
+	        tickTextStroke: props.tickTextStroke,
+	        innerTickSize: props.tickSize,
+	        scale: props.xScale,
+	        orient: props.xOrient,
+	        orient2nd: props.yOrient,
+	        height: props.height,
+	        width: props.width,
+	        horizontalChart: props.horizontalChart,
+	        gridVertical: props.gridVertical,
+	        gridVerticalStroke: props.gridVerticalStroke,
+	        gridVerticalStrokeWidth: props.gridVerticalStrokeWidth,
+	        gridVerticalStrokeDash: props.gridVerticalStrokeDash
+	      }),
+	      React.createElement(AxisLine, _extends({
+	        scale: props.xScale,
+	        stroke: props.stroke,
+	        orient: props.xOrient,
+	        outerTickSize: props.tickSize
+	      }, props)),
+	      React.createElement(Label, {
+	        horizontalChart: props.horizontalChart,
+	        label: props.xAxisLabel,
+	        offset: props.xAxisLabelOffset,
+	        orient: props.xOrient,
+	        margins: props.margins,
+	        width: props.width
+	      })
 	    );
 	  }
-	
 	});
-
 
 /***/ },
 /* 406 */
-/*!*********************************************!*\
-  !*** ./~/react-d3/common/axes/AxisTicks.js ***!
-  \*********************************************/
+/*!**************************************************!*\
+  !*** ./~/rd3/build/cjs/common/axes/AxisTicks.js ***!
+  \**************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
 	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
 	
 	module.exports = React.createClass({
 	
@@ -46000,17 +46142,19 @@
 	
 	  propTypes: {
 	    scale: React.PropTypes.func.isRequired,
-	    orient: React.PropTypes.oneOf(['top','bottom','left','right']).isRequired,
-	    orient2nd: React.PropTypes.oneOf(['top','bottom','left','right']),
+	    orient: React.PropTypes.oneOf(['top', 'bottom', 'left', 'right']).isRequired,
+	    orient2nd: React.PropTypes.oneOf(['top', 'bottom', 'left', 'right']),
 	    height: React.PropTypes.number.isRequired,
 	    width: React.PropTypes.number.isRequired,
-	    tickArguments : React.PropTypes.array,
+	    horizontal: React.PropTypes.bool,
+	    tickArguments: React.PropTypes.array,
 	    tickValues: React.PropTypes.array,
 	    innerTickSize: React.PropTypes.number,
 	    outerTickSize: React.PropTypes.number,
 	    tickPadding: React.PropTypes.number,
 	    tickFormat: React.PropTypes.func,
 	    tickStroke: React.PropTypes.string,
+	    tickTextStroke: React.PropTypes.string,
 	    gridHorizontal: React.PropTypes.bool,
 	    gridVertical: React.PropTypes.bool,
 	    gridHorizontalStroke: React.PropTypes.string,
@@ -46020,7 +46164,7 @@
 	    gridHorizontalStrokeDash: React.PropTypes.string,
 	    gridVerticalStrokeDash: React.PropTypes.string
 	  },
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      innerTickSize: 6,
 	      outerTickSize: 6,
@@ -46038,30 +46182,32 @@
 	      gridVerticalStrokeDash: '5, 5'
 	    };
 	  },
-	
-	  render:function() {
+	  render: function render() {
 	    var props = this.props;
 	
-	    var tr,
-	        ticks,
-	        scale,
-	        adjustedScale,
-	        textAnchor,
-	        tickFormat,
-	        y0, y1, y2, dy, x0, x1, x2, dx;
+	    var tr = void 0;
+	    var textAnchor = void 0;
+	    var textTransform = void 0;
+	    var tickFormat = void 0;
+	    var y1 = void 0;
+	    var y2 = void 0;
+	    var dy = void 0;
+	    var x1 = void 0;
+	    var x2 = void 0;
 	
-	    var gridStrokeWidth,
-	        gridStroke,
-	        gridStrokeDashArray,
-	        x2grid,
-	        y2grid;
+	    var gridStrokeWidth = void 0;
+	    var gridStroke = void 0;
+	    var gridStrokeDashArray = void 0;
+	    var x2grid = void 0;
+	    var y2grid = void 0;
 	    var gridOn = false;
 	
 	    var sign = props.orient === 'top' || props.orient === 'right' ? -1 : 1;
 	    var tickSpacing = Math.max(props.innerTickSize, 0) + props.tickPadding;
 	
-	    scale = props.scale;
+	    var scale = props.scale;
 	
+	    var ticks = void 0;
 	    if (props.tickValues) {
 	      ticks = props.tickValues;
 	    } else if (scale.ticks) {
@@ -46071,55 +46217,98 @@
 	    }
 	
 	    if (props.tickFormatting) {
-	        tickFormat = props.tickFormatting;
+	      tickFormat = props.tickFormatting;
 	    } else if (scale.tickFormat) {
-	        tickFormat = scale.tickFormat.apply(scale, props.tickArguments);
+	      tickFormat = scale.tickFormat.apply(scale, props.tickArguments);
 	    } else {
-	        tickFormat = function(d) {return d;};
+	      tickFormat = function tickFormat(d) {
+	        return d;
+	      };
 	    }
 	
-	    adjustedScale = scale.rangeBand ? function(d)  { return scale(d) + scale.rangeBand() / 2; } : scale;
+	    var adjustedScale = scale.rangeBand ? function (d) {
+	      return scale(d) + scale.rangeBand() / 2;
+	    } : scale;
 	
 	    // Still working on this
 	    // Ticks and lines are not fully aligned
 	    // in some orientations
 	    switch (props.orient) {
 	      case 'top':
-	        tr = function(tick)  {return ("translate(" + adjustedScale(tick) + ",0)");};
-	        textAnchor = "middle";
+	        tr = function tr(tick) {
+	          return 'translate(' + adjustedScale(tick) + ',0)';
+	        };
+	        textAnchor = 'middle';
 	        y2 = props.innerTickSize * sign;
 	        y1 = tickSpacing * sign;
-	        dy =  sign < 0 ? "0em" : ".71em";
+	        dy = sign < 0 ? '0em' : '.71em';
 	        x2grid = 0;
 	        y2grid = -props.height;
 	        break;
 	      case 'bottom':
-	        tr = function(tick)  {return ("translate(" + adjustedScale(tick) + ",0)");};
-	        textAnchor = "middle";
+	        tr = function tr(tick) {
+	          return 'translate(' + adjustedScale(tick) + ',0)';
+	        };
+	        textAnchor = 'middle';
 	        y2 = props.innerTickSize * sign;
 	        y1 = tickSpacing * sign;
-	        dy =  sign < 0 ? "0em" : ".71em";
+	        dy = sign < 0 ? '0em' : '.71em';
 	        x2grid = 0;
 	        y2grid = -props.height;
 	        break;
 	      case 'left':
-	        tr = function(tick)  {return ("translate(0," + adjustedScale(tick) + ")");};
-	        textAnchor = "end";
+	        tr = function tr(tick) {
+	          return 'translate(0,' + adjustedScale(tick) + ')';
+	        };
+	        textAnchor = 'end';
 	        x2 = props.innerTickSize * -sign;
 	        x1 = tickSpacing * -sign;
-	        dy = ".32em";
+	        dy = '.32em';
 	        x2grid = props.width;
 	        y2grid = 0;
 	        break;
 	      case 'right':
-	        tr = function(tick)  {return ("translate(0," + adjustedScale(tick) + ")");};
-	        textAnchor = "start";
+	        tr = function tr(tick) {
+	          return 'translate(0,' + adjustedScale(tick) + ')';
+	        };
+	        textAnchor = 'start';
 	        x2 = props.innerTickSize * -sign;
 	        x1 = tickSpacing * -sign;
-	        dy = ".32em";
+	        dy = '.32em';
 	        x2grid = -props.width;
 	        y2grid = 0;
 	        break;
+	      default:
+	        break;
+	    }
+	
+	    if (props.horizontalChart) {
+	      textTransform = 'rotate(-90)';
+	      var _ref = [x1, -y1 || 0];
+	      y1 = _ref[0];
+	      x1 = _ref[1];
+	
+	
+	      switch (props.orient) {
+	        case 'top':
+	          textAnchor = 'start';
+	          dy = '.32em';
+	          break;
+	        case 'bottom':
+	          textAnchor = 'end';
+	          dy = '.32em';
+	          break;
+	        case 'left':
+	          textAnchor = 'middle';
+	          dy = sign < 0 ? '.71em' : '0em';
+	          break;
+	        case 'right':
+	          textAnchor = 'middle';
+	          dy = sign < 0 ? '.71em' : '0em';
+	          break;
+	        default:
+	          break;
+	      }
 	    }
 	
 	    if (props.gridHorizontal) {
@@ -46127,8 +46316,7 @@
 	      gridStrokeWidth = props.gridHorizontalStrokeWidth;
 	      gridStroke = props.gridHorizontalStroke;
 	      gridStrokeDashArray = props.gridHorizontalStrokeDash;
-	    }
-	    else if (props.gridVertical) {
+	    } else if (props.gridVertical) {
 	      gridOn = true;
 	      gridStrokeWidth = props.gridVerticalStrokeWidth;
 	      gridStroke = props.gridVerticalStroke;
@@ -46136,61 +46324,66 @@
 	    }
 	
 	    // return grid line if grid is enabled and grid line is not on at same position as other axis.
-	    var gridLine = function(pos) {
-	      if (gridOn
-	        && !(props.orient2nd == 'left' && pos == 0)
-	        && !(props.orient2nd == 'right' && pos == props.width)
-	        && !((props.orient == 'left' || props.orient == 'right') && pos == props.height)
-	      ) {
-	        return (
-	          React.createElement("line", {style: {
+	    var gridLine = function gridLine(pos) {
+	      if (gridOn && !(props.orient2nd === 'left' && pos === 0) && !(props.orient2nd === 'right' && pos === props.width) && !((props.orient === 'left' || props.orient === 'right') && pos === props.height)) {
+	        return React.createElement('line', { style: {
 	            strokeWidth: gridStrokeWidth,
 	            shapeRendering: 'crispEdges',
 	            stroke: gridStroke,
 	            strokeDasharray: gridStrokeDashArray
-	            }, x2: x2grid, y2: y2grid})
-	        )
+	          }, x2: x2grid, y2: y2grid
+	        });
 	      }
-	    }
+	      return null;
+	    };
 	
-	    return (
-	    React.createElement("g", null, 
-	      ticks.map( function(tick, idx)  {
-	        return (
-	          React.createElement("g", {key: idx, className: "tick", transform: tr(tick)}, 
-	            gridLine(adjustedScale(tick)), 
-	            React.createElement("line", {style: {shapeRendering:'crispEdges',opacity:'1',stroke:props.tickStroke}, x2: x2, y2: y2}
-	            ), 
-	            React.createElement("text", {
-	              strokeWidth: "0.01", 
-	              dy: dy, x: x1, y: y1, 
-	              style: {stroke:props.tickTextStroke, fill:props.tickTextStroke}, 
+	    var optionalTextProps = textTransform ? {
+	      transform: textTransform
+	    } : {};
+	
+	    return React.createElement(
+	      'g',
+	      null,
+	      ticks.map(function (tick, idx) {
+	        return React.createElement(
+	          'g',
+	          { key: idx, className: 'tick', transform: tr(tick) },
+	          gridLine(adjustedScale(tick)),
+	          React.createElement('line', {
+	            style: {
+	              shapeRendering: 'crispEdges',
+	              opacity: '1',
+	              stroke: props.tickStroke
+	            },
+	            x2: x2,
+	            y2: y2
+	          }),
+	          React.createElement(
+	            'text',
+	            _extends({
+	              strokeWidth: '0.01',
+	              dy: dy, x: x1, y: y1,
+	              style: { stroke: props.tickTextStroke, fill: props.tickTextStroke },
 	              textAnchor: textAnchor
-	            }, 
-	              tickFormat(tick)
-	            )
+	            }, optionalTextProps),
+	            tickFormat(tick)
 	          )
 	        );
-	        })
-	      
-	    )
+	      })
 	    );
 	  }
-	
 	});
-
 
 /***/ },
 /* 407 */
-/*!********************************************!*\
-  !*** ./~/react-d3/common/axes/AxisLine.js ***!
-  \********************************************/
+/*!*************************************************!*\
+  !*** ./~/rd3/build/cjs/common/axes/AxisLine.js ***!
+  \*************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
 	
 	module.exports = React.createClass({
 	
@@ -46206,7 +46399,7 @@
 	    stroke: React.PropTypes.string
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      innerTickSize: 6,
 	      outerTickSize: 6,
@@ -46214,156 +46407,128 @@
 	      fill: 'none',
 	      tickArguments: [10],
 	      tickValues: null,
-	      tickFormat: null 
+	      tickFormat: null
 	    };
 	  },
-	
-	
-	  _d3_scaleExtent:function(domain) {
-	    var start = domain[0], stop = domain[domain.length - 1];
+	  _d3_scaleExtent: function _d3_scaleExtent(domain) {
+	    var start = domain[0];
+	    var stop = domain[domain.length - 1];
 	    return start < stop ? [start, stop] : [stop, start];
 	  },
-	
-	  _d3_scaleRange:function(scale) {
+	  _d3_scaleRange: function _d3_scaleRange(scale) {
 	    return scale.rangeExtent ? scale.rangeExtent() : this._d3_scaleExtent(scale.range());
 	  },
-	
-	  render:function() {
-	
+	  render: function render() {
 	    var props = this.props;
-	    var sign = props.orient === "top" || props.orient === "left" ? -1 : 1;
+	    var sign = props.orient === 'top' || props.orient === 'left' ? -1 : 1;
 	
 	    var range = this._d3_scaleRange(props.scale);
 	
-	    var d;
-	
-	    if (props.orient === "bottom" || props.orient === "top") {
-	      d = "M" + range[0] + "," + sign * props.outerTickSize + "V0H" + range[1] + "V" + sign * props.outerTickSize;
+	    var d = void 0;
+	    if (props.orient === 'bottom' || props.orient === 'top') {
+	      d = 'M' + range[0] + ',' + sign * props.outerTickSize + 'V0H' + range[1] + 'V' + sign * props.outerTickSize;
 	    } else {
-	      d = "M" + sign * props.outerTickSize + "," + range[0] + "H0V" + range[1] + "H" + sign * props.outerTickSize;
+	      d = 'M' + sign * props.outerTickSize + ',' + range[0] + 'H0V' + range[1] + 'H' + sign * props.outerTickSize;
 	    }
 	
-	
-	    return (
-	      React.createElement("path", {
-	        className: "domain", 
-	        d: d, 
-	        style: {'shapeRendering':'crispEdges'}, 
-	        fill: props.fill, 
-	        stroke: props.stroke, 
-	        strokeWidth: props.strokeWidth
-	      }
-	      )
-	    );
+	    return React.createElement('path', {
+	      className: 'domain',
+	      d: d,
+	      style: { shapeRendering: 'crispEdges' },
+	      fill: props.fill,
+	      stroke: props.stroke,
+	      strokeWidth: props.strokeWidth
+	    });
 	  }
 	});
 
-
 /***/ },
 /* 408 */
-/*!*****************************************!*\
-  !*** ./~/react-d3/common/axes/Label.js ***!
-  \*****************************************/
+/*!**********************************************!*\
+  !*** ./~/rd3/build/cjs/common/axes/Label.js ***!
+  \**********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
 	
-	
 	module.exports = React.createClass({
 	
 	  displayName: 'Label',
 	
 	  propTypes: {
-	    height:              React.PropTypes.number,
+	    height: React.PropTypes.number,
+	    horizontalChart: React.PropTypes.bool,
 	    horizontalTransform: React.PropTypes.string,
-	    label:               React.PropTypes.string.isRequired,
-	    width:               React.PropTypes.number,
-	    strokeWidth:         React.PropTypes.number,
-	    textAnchor:          React.PropTypes.string,
-	    verticalTransform:   React.PropTypes.string
+	    label: React.PropTypes.string.isRequired,
+	    width: React.PropTypes.number,
+	    strokeWidth: React.PropTypes.number,
+	    textAnchor: React.PropTypes.string,
+	    verticalTransform: React.PropTypes.string
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      horizontalTransform: 'rotate(270)',
-	      strokeWidth:         0.01,
-	      textAnchor:          'middle',
-	      verticalTransform:   'rotate(0)'
+	      strokeWidth: 0.01,
+	      textAnchor: 'middle',
+	      verticalTransform: 'rotate(0)'
 	    };
 	  },
-	
-	  render:function() {
-	
+	  render: function render() {
 	    var props = this.props;
 	
-	    if (props.label) {
-	      switch (props.orient) {
-	        case 'top':
-	          return (
-	            React.createElement("text", {
-	              strokeWidth: props.strokeWidth.toString(), 
-	              textAnchor: props.textAnchor, 
-	              transform: props.verticalTransform, 
-	              x: props.width / 2, 
-	              y: props.offset
-	            }, 
-	              props.label
-	            )
-	          );
-	        case 'bottom':
-	          return (
-	            React.createElement("text", {
-	              strokeWidth: props.strokeWidth.toString(), 
-	              textAnchor: props.textAnchor, 
-	              transform: props.verticalTransform, 
-	              x: props.width / 2, 
-	              y: props.offset
-	            }, 
-	              props.label
-	            )
-	          );
-	        case 'left':
-	          return (
-	            React.createElement("text", {
-	              strokeWidth: props.strokeWidth.toString(), 
-	              textAnchor: props.textAnchor, 
-	              transform: props.horizontalTransform, 
-	              y: -props.offset, 
-	              x: -props.height / 2
-	            }, 
-	              props.label
-	            )
-	          );
-	        case 'right':
-	          return (
-	            React.createElement("text", {
-	              strokeWidth: props.strokeWidth.toString(), 
-	              textAnchor: props.textAnchor, 
-	              transform: props.horizontalTransform, 
-	              y: props.offset, 
-	              x: -props.height / 2
-	            }, 
-	              props.label
-	            )
-	          );
+	    if (!props.label) {
+	      return React.createElement('text', null);
+	    }
+	
+	    var transform = void 0;
+	    var x = void 0;
+	    var y = void 0;
+	    if (props.orient === 'top' || props.orient === 'bottom') {
+	      transform = props.verticalTransform;
+	      x = props.width / 2;
+	      y = props.offset;
+	
+	      if (props.horizontalChart) {
+	        transform = 'rotate(180 ' + x + ' ' + y + ') ' + transform;
+	      }
+	    } else {
+	      // left, right
+	      transform = props.horizontalTransform;
+	      x = -props.height / 2;
+	      if (props.orient === 'left') {
+	        y = -props.offset;
+	      } else {
+	        y = props.offset;
 	      }
 	    }
-	    return React.createElement("text", null);
-	  }
 	
+	    return React.createElement(
+	      'text',
+	      {
+	        strokeWidth: props.strokeWidth.toString(),
+	        textAnchor: props.textAnchor,
+	        transform: transform,
+	        y: y,
+	        x: x
+	      },
+	      props.label
+	    );
+	  }
 	});
-
 
 /***/ },
 /* 409 */
-/*!*****************************************!*\
-  !*** ./~/react-d3/common/axes/YAxis.js ***!
-  \*****************************************/
+/*!**********************************************!*\
+  !*** ./~/rd3/build/cjs/common/axes/YAxis.js ***!
+  \**********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
 	var React = __webpack_require__(/*! react */ 2);
 	var d3 = __webpack_require__(/*! d3 */ 398);
@@ -46376,51 +46541,51 @@
 	  displayName: 'YAxis',
 	
 	  propTypes: {
-	    fill:            React.PropTypes.string,
-	    stroke:          React.PropTypes.string,
-	    strokeWidth:     React.PropTypes.string,
-	    tickStroke:      React.PropTypes.string,
-	    width:           React.PropTypes.number.isRequired,
-	    height:          React.PropTypes.number.isRequired,
-	    yAxisClassName:  React.PropTypes.string,
-	    yAxisLabel:      React.PropTypes.string,
-	    yAxisOffset:     React.PropTypes.number,
+	    fill: React.PropTypes.string,
+	    stroke: React.PropTypes.string,
+	    strokeWidth: React.PropTypes.string,
+	    tickStroke: React.PropTypes.string,
+	    tickTextStroke: React.PropTypes.string,
+	    width: React.PropTypes.number.isRequired,
+	    height: React.PropTypes.number.isRequired,
+	    horizontalChart: React.PropTypes.bool,
+	    yAxisClassName: React.PropTypes.string,
+	    yAxisLabel: React.PropTypes.string,
+	    yAxisOffset: React.PropTypes.number,
 	    yAxisTickValues: React.PropTypes.array,
-	    xOrient:         React.PropTypes.oneOf(['top', 'bottom']),
-	    yOrient:         React.PropTypes.oneOf(['left', 'right']),
-	    yScale:          React.PropTypes.func.isRequired,
+	    xOrient: React.PropTypes.oneOf(['top', 'bottom']),
+	    yOrient: React.PropTypes.oneOf(['left', 'right']),
+	    yScale: React.PropTypes.func.isRequired,
 	    gridVertical: React.PropTypes.bool,
 	    gridVerticalStroke: React.PropTypes.string,
 	    gridVerticalStrokeWidth: React.PropTypes.number,
 	    gridVerticalStrokeDash: React.PropTypes.string
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      fill:           'none',
-	      stroke:         '#000',
-	      strokeWidth:    '1',
-	      tickStroke:     '#000',
+	      fill: 'none',
+	      stroke: '#000',
+	      strokeWidth: '1',
+	      tickStroke: '#000',
 	      yAxisClassName: 'rd3-y-axis',
-	      yAxisLabel:     '',
-	      yAxisOffset:    0,
-	      xOrient:        'bottom',
-	      yOrient:        'left'
+	      yAxisLabel: '',
+	      yAxisOffset: 0,
+	      xOrient: 'bottom',
+	      yOrient: 'left'
 	    };
 	  },
-	
-	  render:function() {
-	
+	  render: function render() {
 	    var props = this.props;
 	
-	    var t;
+	    var t = void 0;
 	    if (props.yOrient === 'right') {
-	       t = ("translate(" + (props.yAxisOffset + props.width) + ", 0)");
+	      t = 'translate(' + (props.yAxisOffset + props.width) + ', 0)';
 	    } else {
-	       t = ("translate(" + props.yAxisOffset + ", 0)");
+	      t = 'translate(' + props.yAxisOffset + ', 0)';
 	    }
 	
-	    var tickArguments;
+	    var tickArguments = void 0;
 	    if (props.yAxisTickCount) {
 	      tickArguments = [props.yAxisTickCount];
 	    }
@@ -46429,283 +46594,149 @@
 	      tickArguments = [d3.time[props.yAxisTickInterval.unit], props.yAxisTickInterval.interval];
 	    }
 	
-	    return (
-	      React.createElement("g", {
-	        className: props.yAxisClassName, 
+	    return React.createElement(
+	      'g',
+	      {
+	        className: props.yAxisClassName,
 	        transform: t
-	      }, 
-	        React.createElement(AxisTicks, {
-	          innerTickSize: props.tickSize, 
-	          orient: props.yOrient, 
-	          orient2nd: props.xOrient, 
-	          tickArguments: tickArguments, 
-	          tickFormatting: props.tickFormatting, 
-	          tickStroke: props.tickStroke, 
-	          tickTextStroke: props.tickTextStroke, 
-	          tickValues: props.yAxisTickValues, 
-	          scale: props.yScale, 
-	          height: props.height, 
-	          width: props.width, 
-	          gridHorizontal: props.gridHorizontal, 
-	          gridHorizontalStroke: props.gridHorizontalStroke, 
-	          gridHorizontalStrokeWidth: props.gridHorizontalStrokeWidth, 
-	          gridHorizontalStrokeDash: props.gridHorizontalStrokeDash}
-	        ), 
-	        React.createElement(AxisLine, React.__spread({
-	          orient: props.yOrient, 
-	          outerTickSize: props.tickSize, 
-	          scale: props.yScale, 
-	          stroke: props.stroke}, 
-	          props)
-	        ), 
-	        React.createElement(Label, {
-	          height: props.height, 
-	          label: props.yAxisLabel, 
-	          margins: props.margins, 
-	          offset: props.yAxisLabelOffset, 
-	          orient: props.yOrient}
-	        )
-	      )
+	      },
+	      React.createElement(AxisTicks, {
+	        innerTickSize: props.tickSize,
+	        orient: props.yOrient,
+	        orient2nd: props.xOrient,
+	        tickArguments: tickArguments,
+	        tickFormatting: props.tickFormatting,
+	        tickStroke: props.tickStroke,
+	        tickTextStroke: props.tickTextStroke,
+	        tickValues: props.yAxisTickValues,
+	        scale: props.yScale,
+	        height: props.height,
+	        width: props.width,
+	        horizontalChart: props.horizontalChart,
+	        gridHorizontal: props.gridHorizontal,
+	        gridHorizontalStroke: props.gridHorizontalStroke,
+	        gridHorizontalStrokeWidth: props.gridHorizontalStrokeWidth,
+	        gridHorizontalStrokeDash: props.gridHorizontalStrokeDash
+	      }),
+	      React.createElement(AxisLine, _extends({
+	        orient: props.yOrient,
+	        outerTickSize: props.tickSize,
+	        scale: props.yScale,
+	        stroke: props.stroke
+	      }, props)),
+	      React.createElement(Label, {
+	        height: props.height,
+	        horizontalChart: props.horizontalChart,
+	        label: props.yAxisLabel,
+	        margins: props.margins,
+	        offset: props.yAxisLabelOffset,
+	        orient: props.yOrient
+	      })
 	    );
 	  }
-	
 	});
-
 
 /***/ },
 /* 410 */
-/*!*******************************************!*\
-  !*** ./~/react-d3/common/charts/index.js ***!
-  \*******************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	
-	exports.BasicChart = __webpack_require__(/*! ./BasicChart */ 411);
-	exports.Chart = __webpack_require__(/*! ./Chart */ 415);
-	exports.LegendChart = __webpack_require__(/*! ./LegendChart */ 416);
-
-
-/***/ },
-/* 411 */
 /*!************************************************!*\
-  !*** ./~/react-d3/common/charts/BasicChart.js ***!
+  !*** ./~/rd3/build/cjs/common/charts/index.js ***!
   \************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
+	exports.BasicChart = __webpack_require__(/*! ./BasicChart */ 411);
+	exports.Chart = __webpack_require__(/*! ./Chart */ 412);
+	exports.LegendChart = __webpack_require__(/*! ./LegendChart */ 413);
+
+/***/ },
+/* 411 */
+/*!*****************************************************!*\
+  !*** ./~/rd3/build/cjs/common/charts/BasicChart.js ***!
+  \*****************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
 	var React = __webpack_require__(/*! react */ 2);
-	var mixins = __webpack_require__(/*! ../../mixins */ 412);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'BasicChart',
 	
 	  propTypes: {
-	    children:       React.PropTypes.node,
-	    className:      React.PropTypes.string,
-	    height:         React.PropTypes.node,
-	    svgClassName:   React.PropTypes.string,
-	    title:          React.PropTypes.node,
+	    children: React.PropTypes.node,
+	    className: React.PropTypes.string,
+	    height: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number]),
+	    svgClassName: React.PropTypes.string,
+	    title: React.PropTypes.node,
 	    titleClassName: React.PropTypes.string,
-	    width:          React.PropTypes.node
+	    width: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number])
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      className:      'rd3-basic-chart',
-	      svgClassName:   'rd3-chart',
-	      titleClassName: 'rd3-chart-title'
+	      className: 'rd3-basic-chart',
+	      svgClassName: 'rd3-chart',
+	      titleClassName: 'rd3-chart-title',
+	      title: ''
 	    };
 	  },
-	
-	  _renderTitle:function() {
+	  _renderTitle: function _renderTitle() {
 	    var props = this.props;
 	
-	    if (props.title != '' && props.title != null) {
-	      return (
-	        React.createElement("h4", {
+	    if (props.title !== '') {
+	      return React.createElement(
+	        'h4',
+	        {
 	          className: props.titleClassName
-	        }, 
-	          props.title
-	        )
+	        },
+	        props.title
 	      );
-	    } else {
-	      return null;
 	    }
+	    return null;
 	  },
-	
-	  _renderChart: function() {
+	  _renderChart: function _renderChart() {
 	    var props = this.props;
 	
-	    return (
-	      React.createElement("svg", {
-	        className: props.svgClassName, 
-	        height: props.height, 
-	        viewBox: props.viewBox, 
+	    return React.createElement(
+	      'svg',
+	      {
+	        className: props.svgClassName,
+	        height: props.height,
+	        viewBox: props.viewBox,
 	        width: props.width
-	      }, 
-	        props.children
-	      )
+	      },
+	      props.children
 	    );
 	  },
-	
-	  render: function() {
+	  render: function render() {
 	    var props = this.props;
 	
-	    return (
-	      React.createElement("div", {
+	    return React.createElement(
+	      'div',
+	      {
 	        className: props.className
-	      }, 
-	        this._renderTitle(), 
-	        this._renderChart()
-	      )
+	      },
+	      this._renderTitle(),
+	      this._renderChart()
 	    );
 	  }
 	});
 
-
 /***/ },
 /* 412 */
-/*!************************************!*\
-  !*** ./~/react-d3/mixins/index.js ***!
-  \************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	
-	exports.CartesianChartPropsMixin = __webpack_require__(/*! ./CartesianChartPropsMixin */ 413);
-	exports.ViewBoxMixin = __webpack_require__(/*! ./ViewBoxMixin */ 414);
-
-
-/***/ },
-/* 413 */
-/*!*******************************************************!*\
-  !*** ./~/react-d3/mixins/CartesianChartPropsMixin.js ***!
-  \*******************************************************/
+/*!************************************************!*\
+  !*** ./~/rd3/build/cjs/common/charts/Chart.js ***!
+  \************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
-	
-	module.exports =  {
-	
-	  propTypes: {
-	    axesColor:         React.PropTypes.string,
-	    colors:            React.PropTypes.func,
-	    colorAccessor:     React.PropTypes.func,
-	    data:              React.PropTypes.array.isRequired,
-	    height:            React.PropTypes.number,
-	    legend:            React.PropTypes.bool,
-	    legendOffset:      React.PropTypes.number,
-	    title:             React.PropTypes.string,
-	    width:             React.PropTypes.number,
-	    xAccessor:         React.PropTypes.func,
-	    xAxisFormatter:    React.PropTypes.func,
-	    xAxisLabel:        React.PropTypes.string,
-	    xAxisLabelOffset:  React.PropTypes.number,
-	    xAxisTickCount:    React.PropTypes.number,
-	    xAxisTickInterval: React.PropTypes.object,
-	    xAxisTickValues:   React.PropTypes.array,
-	    xOrient:           React.PropTypes.oneOf(['top', 'bottom']),
-	    yAccessor:         React.PropTypes.func,
-	    yAxisFormatter:    React.PropTypes.func,
-	    yAxisLabel:        React.PropTypes.string,
-	    yAxisLabelOffset:  React.PropTypes.number,
-	    yAxisTickCount:    React.PropTypes.number,
-	    yAxisTickInterval: React.PropTypes.object,
-	    yAxisTickValues:   React.PropTypes.array,
-	    yOrient:           React.PropTypes.oneOf(['left', 'right'])
-	  },
-	
-	  getDefaultProps: function() {
-	    return {
-	      axesColor:        '#000',
-	      colors:           d3.scale.category20c(),
-	      colorAccessor:    function(d, idx)  {return idx;},
-	      height:           200,
-	      legend:           false,
-	      legendOffset:     120,
-	      title:            '',
-	      width:            400,
-	      xAccessor:        function(d)  {return d.x;},
-	      // xAxisFormatter: no predefined value right now
-	      xAxisLabel:       '',
-	      xAxisLabelOffset: 38,
-	      // xAxisTickCount: no predefined value right now
-	      // xAxisTickInterval: no predefined value right now
-	      // xAxisTickValues: no predefined value right now
-	      xOrient:          'bottom',
-	      yAccessor:        function(d)  {return d.y;},
-	      // yAxisFormatter: no predefined value right now
-	      yAxisLabel:       '',
-	      yAxisLabelOffset: 35,
-	      // yAxisTickCount: no predefined value right now
-	      // yAxisTickInterval: no predefined value right now
-	      // yAxisTickValues: no predefined value right now
-	      yOrient:          'left'
-	    };
-	  }
-	};
-
-
-/***/ },
-/* 414 */
-/*!*******************************************!*\
-  !*** ./~/react-d3/mixins/ViewBoxMixin.js ***!
-  \*******************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	
-	'use strict';
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
 	var React = __webpack_require__(/*! react */ 2);
-	
-	module.exports =  {
-	
-	  propTypes: {
-	    viewBox:           React.PropTypes.string,
-	    viewBoxObject:     React.PropTypes.object
-	  },
-	
-	  getViewBox:function() {
-	    if (this.props.viewBoxObject) {
-	      var v = this.props.viewBoxObject;
-	      return [v.x, v.y, v.width, v.height].join(' ');
-	    } else if (this.props.viewBox) {
-	      return this.props.viewBox;
-	    } 
-	  },
-	
-	  getOuterDimensions:function() {
-	    if (this.props.viewBoxObject) {
-	      return {
-	        width: this.props.viewBoxObject.width,
-	        height: this.props.viewBoxObject.height
-	      };
-	    } else {
-	      return {
-	        width: this.props.width,
-	        height: this.props.height
-	      };
-	    }
-	  }
-	
-	};
-
-
-/***/ },
-/* 415 */
-/*!*******************************************!*\
-  !*** ./~/react-d3/common/charts/Chart.js ***!
-  \*******************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var React = __webpack_require__(/*! react */ 2);
-	var LegendChart = __webpack_require__(/*! ./LegendChart */ 416);
+	var LegendChart = __webpack_require__(/*! ./LegendChart */ 413);
 	var BasicChart = __webpack_require__(/*! ./BasicChart */ 411);
 	
 	module.exports = React.createClass({
@@ -46713,54 +46744,50 @@
 	  displayName: 'Chart',
 	
 	  propTypes: {
-	    legend:         React.PropTypes.bool,
-	    svgClassName:   React.PropTypes.string,
-	    titleClassName: React.PropTypes.string
+	    legend: React.PropTypes.bool,
+	    svgClassName: React.PropTypes.string,
+	    titleClassName: React.PropTypes.string,
+	    shouldUpdate: React.PropTypes.bool
 	  },
 	
-	  getDefaultProps: function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      legend:         false,
-	      svgClassName:   'rd3-chart',
-	      titleClassName: 'rd3-chart-title'
+	      legend: false,
+	      svgClassName: 'rd3-chart',
+	      titleClassName: 'rd3-chart-title',
+	      shouldUpdate: true
 	    };
 	  },
-	
-	  render: function() {
+	  shouldComponentUpdate: function shouldComponentUpdate(nextProps) {
+	    return nextProps.shouldUpdate;
+	  },
+	  render: function render() {
 	    var props = this.props;
 	
 	    if (props.legend) {
-	      return (
-	        React.createElement(LegendChart, React.__spread({
-	          svgClassName: props.svgClassName, 
-	          titleClassName: props.titleClassName}, 
-	          this.props)
-	        )
-	      );
+	      return React.createElement(LegendChart, _extends({
+	        svgClassName: props.svgClassName,
+	        titleClassName: props.titleClassName
+	      }, this.props));
 	    }
-	    return (
-	      React.createElement(BasicChart, React.__spread({
-	        svgClassName: props.svgClassName, 
-	        titleClassName: props.titleClassName}, 
-	        this.props)
-	      )
-	    );
+	    return React.createElement(BasicChart, _extends({
+	      svgClassName: props.svgClassName,
+	      titleClassName: props.titleClassName
+	    }, this.props));
 	  }
-	
 	});
 
-
 /***/ },
-/* 416 */
-/*!*************************************************!*\
-  !*** ./~/react-d3/common/charts/LegendChart.js ***!
-  \*************************************************/
+/* 413 */
+/*!******************************************************!*\
+  !*** ./~/rd3/build/cjs/common/charts/LegendChart.js ***!
+  \******************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
-	var Legend = __webpack_require__(/*! ../Legend */ 417);
+	var Legend = __webpack_require__(/*! ../Legend */ 414);
 	var d3 = __webpack_require__(/*! d3 */ 398);
 	
 	module.exports = React.createClass({
@@ -46768,112 +46795,116 @@
 	  displayName: 'LegendChart',
 	
 	  propTypes: {
-	    children:       React.PropTypes.node,
-	    createClass:    React.PropTypes.string,
-	    colors:         React.PropTypes.func,
-	    colorAccessor:  React.PropTypes.func,
-	    data:           React.PropTypes.array,
-	    height:         React.PropTypes.node,
-	    legend:         React.PropTypes.bool,
+	    children: React.PropTypes.node,
+	    createClass: React.PropTypes.string,
+	    colors: React.PropTypes.func,
+	    colorAccessor: React.PropTypes.func,
+	    data: React.PropTypes.array,
+	    height: React.PropTypes.node,
+	    legend: React.PropTypes.bool,
 	    legendPosition: React.PropTypes.string,
-	    margins:        React.PropTypes.object,
-	    sideOffset:     React.PropTypes.number,
-	    svgClassName:   React.PropTypes.string,
-	    title:          React.PropTypes.node,
+	    margins: React.PropTypes.object,
+	    sideOffset: React.PropTypes.number,
+	    svgClassName: React.PropTypes.string,
+	    title: React.PropTypes.node,
 	    titleClassName: React.PropTypes.string,
-	    viewBox:        React.PropTypes.string,
-	    width:          React.PropTypes.node
+	    viewBox: React.PropTypes.string,
+	    width: React.PropTypes.node
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      className:      'rd3-legend-chart',
-	      colors:         d3.scale.category20c(),
-	      colorAccessor:  function(d, idx)  {return idx;},
-	      data:           [],
-	      legend:         false,
+	      className: 'rd3-legend-chart',
+	      colors: d3.scale.category20c(),
+	      colorAccessor: function colorAccessor(d, idx) {
+	        return idx;
+	      },
+	      data: [],
+	      legend: false,
 	      legendPosition: 'right',
-	      sideOffset:     90,
-	      svgClassName:   'rd3-chart',
-	      titleClassName: 'rd3-chart-title'
+	      sideOffset: 90,
+	      svgClassName: 'rd3-chart',
+	      titleClassName: 'rd3-chart-title',
+	      title: ''
 	    };
 	  },
-	
-	  _renderLegend:function() {
+	  _renderLegend: function _renderLegend() {
 	    var props = this.props;
 	
 	    if (props.legend) {
-	      return (
-	        React.createElement(Legend, {
-	          colors: props.colors, 
-	          colorAccessor: props.colorAccessor, 
-	          data: props.data, 
-	          legendPosition: props.legendPosition, 
-	          margins: props.margins, 
-	          width: props.sideOffset}
-	        )
-	      );
+	      return React.createElement(Legend, {
+	        colors: props.colors,
+	        colorAccessor: props.colorAccessor,
+	        data: props.data,
+	        legendPosition: props.legendPosition,
+	        margins: props.margins,
+	        width: props.sideOffset
+	      });
 	    }
-	  },
 	
-	  _renderTitle:function() {
+	    return null;
+	  },
+	  _renderTitle: function _renderTitle() {
 	    var props = this.props;
 	
-	    if (props.title != '' && props.title != null) {
-	      return (
-	        React.createElement("h4", {
+	    if (props.title !== '') {
+	      return React.createElement(
+	        'h4',
+	        {
 	          className: props.titleClassName
-	        }, 
-	          props.title
-	        )
+	        },
+	        props.title
 	      );
 	    }
 	    return null;
 	  },
-	
-	  _renderChart: function() {
+	  _renderChart: function _renderChart() {
 	    var props = this.props;
 	
-	    return (
-	      React.createElement("svg", {
-	        className: props.svgClassName, 
-	        height: "100%", 
-	        viewBox: props.viewBox, 
-	        width: "100%"
-	      }, 
-	        props.children
-	      )
+	    return React.createElement(
+	      'svg',
+	      {
+	        className: props.svgClassName,
+	        height: '100%',
+	        viewBox: props.viewBox,
+	        width: '100%'
+	      },
+	      props.children
 	    );
 	  },
-	
-	  render:function() {
+	  render: function render() {
 	    var props = this.props;
 	
-	    return (
-	      React.createElement("div", {
-	        className: props.className, 
-	        style: {'width': props.width, 'height': props.height}
-	      }, 
-	        this._renderTitle(), 
-	        React.createElement("div", {style: { display: 'table', width: '100%', height: '100%'}}, 
-	          React.createElement("div", {style: { display: 'table-cell'}}, 
-	            this._renderChart()
-	          ), 
-	          React.createElement("div", {style: { display: 'table-cell', width: props.sideOffset, 'verticalAlign': 'top'}}, 
-	            this._renderLegend()
-	          )
+	    return React.createElement(
+	      'div',
+	      {
+	        className: props.className,
+	        style: { width: props.width, height: props.height }
+	      },
+	      this._renderTitle(),
+	      React.createElement(
+	        'div',
+	        { style: { display: 'table', width: '100%', height: '100%' } },
+	        React.createElement(
+	          'div',
+	          { style: { display: 'table-cell' } },
+	          this._renderChart()
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: { display: 'table-cell', width: props.sideOffset, verticalAlign: 'top' } },
+	          this._renderLegend()
 	        )
 	      )
 	    );
 	  }
 	});
 
-
 /***/ },
-/* 417 */
-/*!*************************************!*\
-  !*** ./~/react-d3/common/Legend.js ***!
-  \*************************************/
+/* 414 */
+/*!******************************************!*\
+  !*** ./~/rd3/build/cjs/common/Legend.js ***!
+  \******************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -46886,170 +46917,145 @@
 	  displayName: 'Legend',
 	
 	  propTypes: {
-	    className:     React.PropTypes.string,
-	    colors:        React.PropTypes.func,
+	    className: React.PropTypes.string,
+	    colors: React.PropTypes.func,
 	    colorAccessor: React.PropTypes.func,
-	    data:          React.PropTypes.array.isRequired,
+	    data: React.PropTypes.array.isRequired,
 	    itemClassName: React.PropTypes.string,
-	    margins:       React.PropTypes.object,
-	    text:          React.PropTypes.string,
-	    width:         React.PropTypes.number.isRequired
+	    margins: React.PropTypes.object,
+	    text: React.PropTypes.string,
+	    width: React.PropTypes.number.isRequired
 	  },
 	
-	  getDefaultProps: function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      className:    'rd3-legend',
-	      colors:        d3.scale.category20c(),
-	      colorAccessor: function(d, idx)  {return idx;},
+	      className: 'rd3-legend',
+	      colors: d3.scale.category20c(),
+	      colorAccessor: function colorAccessor(d, idx) {
+	        return idx;
+	      },
 	      itemClassName: 'rd3-legend-item',
-	      text:          '#000'
+	      text: '#000'
 	    };
 	  },
-	
-	  render: function() {
-	
+	  render: function render() {
 	    var props = this.props;
 	
 	    var textStyle = {
-	      'color': 'black',
-	      'fontSize': '50%',
-	      'verticalAlign': 'top'
+	      color: 'black',
+	      fontSize: '50%',
+	      verticalAlign: 'top'
 	    };
 	
 	    var legendItems = [];
 	
-	    props.data.forEach( function(series, idx)  {
+	    props.data.forEach(function (series, idx) {
 	      var itemStyle = {
-	        'color': props.colors(props.colorAccessor(series, idx)),
-	        'lineHeight': '60%',
-	        'fontSize': '200%'
+	        color: props.colors(props.colorAccessor(series, idx)),
+	        lineHeight: '60%',
+	        fontSize: '200%'
 	      };
 	
-	      legendItems.push(
-	        React.createElement("li", {
-	          key: idx, 
-	          className: props.itemClassName, 
+	      legendItems.push(React.createElement(
+	        'li',
+	        {
+	          key: idx,
+	          className: props.itemClassName,
 	          style: itemStyle
-	        }, 
-	          React.createElement("span", {
+	        },
+	        React.createElement(
+	          'span',
+	          {
 	            style: textStyle
-	          }, 
-	            series.name
-	          )
+	          },
+	          series.name
 	        )
-	      );
-	
+	      ));
 	    });
 	
 	    var topMargin = props.margins.top;
 	
 	    var legendBlockStyle = {
-	      'wordWrap': 'break-word',
-	      'width': props.width,
-	      'paddingLeft': '0',
-	      'marginBottom': '0',
-	      'marginTop': topMargin,
-	      'listStylePosition': 'inside'
+	      wordWrap: 'break-word',
+	      width: props.width,
+	      paddingLeft: '0',
+	      marginBottom: '0',
+	      marginTop: topMargin,
+	      listStylePosition: 'inside'
 	    };
 	
-	    return (
-	      React.createElement("ul", {
-	        className: props.className, 
+	    return React.createElement(
+	      'ul',
+	      {
+	        className: props.className,
 	        style: legendBlockStyle
-	      }, 
-	        legendItems
-	      )
+	      },
+	      legendItems
 	    );
 	  }
-	
 	});
 
-
 /***/ },
-/* 418 */
-/*!**************************************!*\
-  !*** ./~/react-d3/common/Voronoi.js ***!
-  \**************************************/
+/* 415 */
+/*!*******************************************!*\
+  !*** ./~/rd3/build/cjs/common/Tooltip.js ***!
+  \*******************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
-	
-	var Polygon = React.createClass({displayName: "Polygon",
-	
-	  _animateCircle: function() {
-	    this.props.structure.cursor('voronoi').cursor(this.props.id).update(function(){return 'active';});
-	    // this.props.pubsub.emit('animate', this.props.id);
-	  },
-	
-	  _restoreCircle: function() {
-	    this.props.structure.cursor('voronoi').cursor(this.props.id).update(function(){return 'inactive';});
-	    // this.props.pubsub.emit('restore', this.props.id);
-	  },
-	
-	  _drawPath: function(d) {
-	    if(d === undefined) {
-	      return; 
-	    }  
-	    return 'M' + d.join(',') + 'Z';
-	  },
-	
-	  render: function() {
-	    return React.createElement("path", {
-	      onMouseOver: this._animateCircle, 
-	      onMouseOut: this._restoreCircle, 
-	      fill: "white", 
-	      opacity: "0", 
-	      d: this._drawPath(this.props.vnode)});
-	  }
-	
-	});
-	
 	
 	module.exports = React.createClass({
+	  displayName: 'exports',
 	
-	  displayName: 'Voronoi',
 	
-	  render: function() {
-	    var xScale = this.props.xScale;
-	    var yScale = this.props.yScale;
+	  propTypes: {
+	    x: React.PropTypes.number,
+	    y: React.PropTypes.number,
+	    child: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number, React.PropTypes.element]),
+	    show: React.PropTypes.bool
+	  },
 	
-	    var voronoi = d3.geom.voronoi()
-	      .x(function(d){ return xScale(d.coord.x); })
-	      .y(function(d){ return yScale(d.coord.y); })
-	      .clipExtent([[0, 0], [ this.props.width , this.props.height]]);
+	  render: function render() {
+	    var props = this.props;
+	    var display = this.props.show ? 'inherit' : 'none';
+	    var containerStyles = {
+	      position: 'fixed',
+	      top: props.y,
+	      left: props.x,
+	      display: display,
+	      opacity: 0.8
+	    };
 	
-	    var regions = voronoi(this.props.data).map(function(vnode, idx) {
-	      return React.createElement(Polygon, {structure: this.props.structure, key: idx, id: vnode.point.id, vnode: vnode});
-	    }.bind(this));
-	
-	    return (
-	      React.createElement("g", null, 
-	        regions
+	    // TODO: add 'right: 0px' style when tooltip is off the chart
+	    var tooltipStyles = {
+	      position: 'absolute',
+	      backgroundColor: 'white',
+	      border: '1px solid',
+	      borderColor: '#ddd',
+	      borderRadius: '2px',
+	      padding: '10px',
+	      marginLeft: '10px',
+	      marginRight: '10px',
+	      marginTop: '-15px'
+	    };
+	    return React.createElement(
+	      'div',
+	      { style: containerStyles },
+	      React.createElement(
+	        'div',
+	        { style: tooltipStyles },
+	        props.child
 	      )
 	    );
 	  }
-	
 	});
 
-
 /***/ },
-/* 419 */
-/*!***************************************!*\
-  !*** ./~/react-d3/linechart/index.js ***!
-  \***************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	
-	exports.LineChart = __webpack_require__(/*! ./LineChart */ 420);
-
-
-/***/ },
-/* 420 */
+/* 416 */
 /*!*******************************************!*\
-  !*** ./~/react-d3/linechart/LineChart.js ***!
+  !*** ./~/rd3/build/cjs/common/Voronoi.js ***!
   \*******************************************/
 /***/ function(module, exports, __webpack_require__) {
 
@@ -47057,49 +47063,480 @@
 	
 	var React = __webpack_require__(/*! react */ 2);
 	var d3 = __webpack_require__(/*! d3 */ 398);
-	var $__0=      __webpack_require__(/*! ../common */ 403),Chart=$__0.Chart,XAxis=$__0.XAxis,YAxis=$__0.YAxis;
-	var DataSeries = __webpack_require__(/*! ./DataSeries */ 421);
-	var utils = __webpack_require__(/*! ../utils */ 402);
-	var $__1=     __webpack_require__(/*! ../mixins */ 412),CartesianChartPropsMixin=$__1.CartesianChartPropsMixin,ViewBoxMixin=$__1.ViewBoxMixin;
+	var Polygon = __webpack_require__(/*! ./Polygon */ 417);
 	
 	module.exports = React.createClass({
 	
-	  mixins: [ CartesianChartPropsMixin, ViewBoxMixin ],
+	  displayName: 'Voronoi',
+	
+	  // TODO: PropTypes.any
+	  propTypes: {
+	    xScale: React.PropTypes.any,
+	    yScale: React.PropTypes.any,
+	    width: React.PropTypes.any,
+	    height: React.PropTypes.any,
+	    structure: React.PropTypes.any,
+	    data: React.PropTypes.any
+	  },
+	
+	  render: function render() {
+	    var _this = this;
+	
+	    var xScale = this.props.xScale;
+	    var yScale = this.props.yScale;
+	
+	    var voronoi = d3.geom.voronoi().x(function (d) {
+	      return xScale(d.coord.x);
+	    }).y(function (d) {
+	      return yScale(d.coord.y);
+	    }).clipExtent([[0, 0], [this.props.width, this.props.height]]);
+	
+	    var regions = voronoi(this.props.data).map(function (vnode, idx) {
+	      return React.createElement(Polygon, { structure: _this.props.structure, key: idx, id: vnode.point.id, vnode: vnode });
+	    });
+	
+	    return React.createElement(
+	      'g',
+	      null,
+	      regions
+	    );
+	  }
+	});
+
+/***/ },
+/* 417 */
+/*!*******************************************!*\
+  !*** ./~/rd3/build/cjs/common/Polygon.js ***!
+  \*******************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var React = __webpack_require__(/*! react */ 2);
+	
+	module.exports = React.createClass({
+	  displayName: 'exports',
+	
+	
+	  // TODO: PropTypes.any
+	  propTypes: {
+	    structure: React.PropTypes.any,
+	    id: React.PropTypes.any,
+	    vnode: React.PropTypes.any
+	  },
+	
+	  _animateCircle: function _animateCircle() {
+	    this.props.structure.cursor('voronoi').cursor(this.props.id).update(function () {
+	      return 'active';
+	    });
+	    // this.props.pubsub.emit('animate', this.props.id);
+	  },
+	  _restoreCircle: function _restoreCircle() {
+	    this.props.structure.cursor('voronoi').cursor(this.props.id).update(function () {
+	      return 'inactive';
+	    });
+	    // this.props.pubsub.emit('restore', this.props.id);
+	  },
+	  _drawPath: function _drawPath(d) {
+	    if (d === undefined) {
+	      return '';
+	    }
+	    return 'M' + d.join(',') + 'Z';
+	  },
+	  render: function render() {
+	    return React.createElement('path', {
+	      onMouseOver: this._animateCircle,
+	      onMouseOut: this._restoreCircle,
+	      fill: 'white',
+	      opacity: '0',
+	      d: this._drawPath(this.props.vnode)
+	    });
+	  }
+	});
+
+/***/ },
+/* 418 */
+/*!*****************************************!*\
+  !*** ./~/rd3/build/cjs/mixins/index.js ***!
+  \*****************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	exports.CartesianChartPropsMixin = __webpack_require__(/*! ./CartesianChartPropsMixin */ 419);
+	exports.DefaultAccessorsMixin = __webpack_require__(/*! ./DefaultAccessorsMixin */ 420);
+	exports.ViewBoxMixin = __webpack_require__(/*! ./ViewBoxMixin */ 421);
+	exports.TooltipMixin = __webpack_require__(/*! ./TooltipMixin */ 422);
+
+/***/ },
+/* 419 */
+/*!************************************************************!*\
+  !*** ./~/rd3/build/cjs/mixins/CartesianChartPropsMixin.js ***!
+  \************************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var React = __webpack_require__(/*! react */ 2);
+	var d3 = __webpack_require__(/*! d3 */ 398);
+	
+	module.exports = {
+	
+	  propTypes: {
+	    axesColor: React.PropTypes.string,
+	    colors: React.PropTypes.func,
+	    colorAccessor: React.PropTypes.func,
+	    data: React.PropTypes.array.isRequired,
+	    height: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number]),
+	    horizontal: React.PropTypes.bool,
+	    legend: React.PropTypes.bool,
+	    legendOffset: React.PropTypes.number,
+	    title: React.PropTypes.string,
+	    width: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number]),
+	    xAccessor: React.PropTypes.func,
+	    xAxisFormatter: React.PropTypes.func,
+	    xAxisLabel: React.PropTypes.string,
+	    xAxisLabelOffset: React.PropTypes.number,
+	    xAxisTickCount: React.PropTypes.number,
+	    xAxisTickInterval: React.PropTypes.object,
+	    xAxisTickValues: React.PropTypes.array,
+	    xAxisTickStroke: React.PropTypes.string,
+	    xAxisTickTextStroke: React.PropTypes.string,
+	    xAxisOffset: React.PropTypes.number,
+	    xOrient: React.PropTypes.oneOf(['top', 'bottom']),
+	    xScale: React.PropTypes.func,
+	    yAccessor: React.PropTypes.func,
+	    yAxisFormatter: React.PropTypes.func,
+	    yAxisLabel: React.PropTypes.string,
+	    yAxisLabelOffset: React.PropTypes.number,
+	    yAxisTickCount: React.PropTypes.number,
+	    yAxisTickInterval: React.PropTypes.object,
+	    yAxisTickValues: React.PropTypes.array,
+	    yAxisTickStroke: React.PropTypes.string,
+	    yAxisTickTextStroke: React.PropTypes.string,
+	    yAxisOffset: React.PropTypes.number,
+	    yOrient: React.PropTypes.oneOf(['default', 'left', 'right']),
+	    yScale: React.PropTypes.func
+	  },
+	
+	  getDefaultProps: function getDefaultProps() {
+	    return {
+	      axesColor: '#000',
+	      colors: d3.scale.category20c(),
+	      colorAccessor: function colorAccessor(d, idx) {
+	        return idx;
+	      },
+	      height: 200,
+	      horizontal: false,
+	      legend: false,
+	      legendOffset: 120,
+	      title: '',
+	      width: 400,
+	      // xAxisFormatter: no predefined value right now
+	      xAxisLabel: '',
+	      xAxisLabelOffset: 38,
+	      xAxisOffset: 0,
+	      // xAxisTickCount: no predefined value right now
+	      // xAxisTickInterval: no predefined value right now
+	      // xAxisTickValues: no predefined value right now
+	      xAxisTickStroke: '#000',
+	      xAxisTickTextStroke: '#000',
+	      xOrient: 'bottom',
+	      // xScale: no predefined value right now
+	      // yAxisFormatter: no predefined value right now
+	      yAxisLabel: '',
+	      yAxisLabelOffset: 35,
+	      yAxisOffset: 0,
+	      // yAxisTickCount: no predefined value right now
+	      // yAxisTickInterval: no predefined value right now
+	      // yAxisTickValues: no predefined value right now
+	      yAxisTickStroke: '#000',
+	      yAxisTickTextStroke: '#000',
+	      yOrient: 'default'
+	    };
+	  },
+	  // yScale: no predefined value right now
+	  getYOrient: function getYOrient() {
+	    var yOrient = this.props.yOrient;
+	
+	    if (yOrient === 'default') {
+	      return this.props.horizontal ? 'right' : 'left';
+	    }
+	
+	    return yOrient;
+	  }
+	};
+
+/***/ },
+/* 420 */
+/*!*********************************************************!*\
+  !*** ./~/rd3/build/cjs/mixins/DefaultAccessorsMixin.js ***!
+  \*********************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var React = __webpack_require__(/*! react */ 2);
+	
+	module.exports = {
+	  propTypes: {
+	    xAccessor: React.PropTypes.func,
+	    yAccessor: React.PropTypes.func
+	  },
+	
+	  getDefaultProps: function getDefaultProps() {
+	    return {
+	      xAccessor: function xAccessor(d) {
+	        return d.x;
+	      },
+	      yAccessor: function yAccessor(d) {
+	        return d.y;
+	      }
+	    };
+	  }
+	};
+
+/***/ },
+/* 421 */
+/*!************************************************!*\
+  !*** ./~/rd3/build/cjs/mixins/ViewBoxMixin.js ***!
+  \************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	
+	'use strict';
+	
+	var React = __webpack_require__(/*! react */ 2);
+	
+	module.exports = {
+	
+	  propTypes: {
+	    viewBox: React.PropTypes.string,
+	    viewBoxObject: React.PropTypes.object
+	  },
+	
+	  getViewBox: function getViewBox() {
+	    if (this.props.viewBoxObject) {
+	      var v = this.props.viewBoxObject;
+	      return [v.x, v.y, v.width, v.height].join(' ');
+	    } else if (this.props.viewBox) {
+	      return this.props.viewBox;
+	    }
+	    return null;
+	  },
+	  getDimensions: function getDimensions() {
+	    var props = this.props;
+	    var horizontal = props.horizontal;
+	    var margins = props.margins;
+	    var viewBoxObject = props.viewBoxObject;
+	    var xOrient = props.xOrient;
+	
+	    var yOrient = this.getYOrient();
+	
+	    var width = void 0;
+	    var height = void 0;
+	    if (viewBoxObject) {
+	      width = viewBoxObject.width;
+	      height = viewBoxObject.height;
+	    } else {
+	      width = props.width;
+	      height = props.height;
+	    }
+	
+	    var svgWidth = void 0;
+	    var svgHeight = void 0;
+	    var svgMargins = void 0;
+	    var trans = void 0;
+	    if (horizontal) {
+	      var center = width / 2;
+	      trans = 'rotate(90 ' + center + ' ' + center + ') ';
+	      svgWidth = height;
+	      svgHeight = width;
+	      svgMargins = {
+	        left: margins.top,
+	        top: margins.right,
+	        right: margins.bottom,
+	        bottom: margins.left
+	      };
+	    } else {
+	      trans = '';
+	      svgWidth = width;
+	      svgHeight = height;
+	      svgMargins = margins;
+	    }
+	
+	    var xAxisOffset = Math.abs(props.xAxisOffset || 0);
+	    var yAxisOffset = Math.abs(props.yAxisOffset || 0);
+	
+	    var xOffset = svgMargins.left + (yOrient === 'left' ? yAxisOffset : 0);
+	    var yOffset = svgMargins.top + (xOrient === 'top' ? xAxisOffset : 0);
+	    trans += 'translate(' + xOffset + ', ' + yOffset + ')';
+	
+	    return {
+	      innerHeight: svgHeight - svgMargins.top - svgMargins.bottom - xAxisOffset,
+	      innerWidth: svgWidth - svgMargins.left - svgMargins.right - yAxisOffset,
+	      trans: trans,
+	      svgMargins: svgMargins
+	    };
+	  }
+	};
+
+/***/ },
+/* 422 */
+/*!************************************************!*\
+  !*** ./~/rd3/build/cjs/mixins/TooltipMixin.js ***!
+  \************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var React = __webpack_require__(/*! react */ 2);
+	
+	module.exports = {
+	
+	  propTypes: {
+	    showTooltip: React.PropTypes.bool,
+	    tooltipFormat: React.PropTypes.func
+	  },
+	
+	  getDefaultProps: function getDefaultProps() {
+	    return {
+	      showTooltip: true,
+	      tooltipFormat: function tooltipFormat(d) {
+	        return String(d.yValue);
+	      }
+	    };
+	  },
+	  getInitialState: function getInitialState() {
+	    return {
+	      tooltip: {
+	        x: 0,
+	        y: 0,
+	        child: '',
+	        show: false
+	      },
+	      changeState: false
+	    };
+	  },
+	  componentWillReceiveProps: function componentWillReceiveProps() {
+	    this.setState({
+	      changeState: false
+	    });
+	  },
+	  onMouseOver: function onMouseOver(x, y, dataPoint) {
+	    if (!this.props.showTooltip) {
+	      return;
+	    }
+	    this.setState({
+	      tooltip: {
+	        x: x,
+	        y: y,
+	        child: this.props.tooltipFormat.call(this, dataPoint),
+	        show: true
+	      },
+	      changeState: true
+	    });
+	  },
+	  onMouseLeave: function onMouseLeave() {
+	    if (!this.props.showTooltip) {
+	      return;
+	    }
+	    this.setState({
+	      tooltip: {
+	        x: 0,
+	        y: 0,
+	        child: '',
+	        show: false
+	      },
+	      changeState: true
+	    });
+	  }
+	};
+
+/***/ },
+/* 423 */
+/*!********************************************!*\
+  !*** ./~/rd3/build/cjs/linechart/index.js ***!
+  \********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	exports.LineChart = __webpack_require__(/*! ./LineChart */ 424);
+
+/***/ },
+/* 424 */
+/*!************************************************!*\
+  !*** ./~/rd3/build/cjs/linechart/LineChart.js ***!
+  \************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var React = __webpack_require__(/*! react */ 2);
+	
+	var _require = __webpack_require__(/*! ../common */ 403);
+	
+	var Chart = _require.Chart;
+	var XAxis = _require.XAxis;
+	var YAxis = _require.YAxis;
+	var Tooltip = _require.Tooltip;
+	
+	var DataSeries = __webpack_require__(/*! ./DataSeries */ 425);
+	var utils = __webpack_require__(/*! ../utils */ 402);
+	
+	var _require2 = __webpack_require__(/*! ../mixins */ 418);
+	
+	var CartesianChartPropsMixin = _require2.CartesianChartPropsMixin;
+	var DefaultAccessorsMixin = _require2.DefaultAccessorsMixin;
+	var ViewBoxMixin = _require2.ViewBoxMixin;
+	var TooltipMixin = _require2.TooltipMixin;
+	
+	
+	module.exports = React.createClass({
 	
 	  displayName: 'LineChart',
 	
 	  propTypes: {
-	    circleRadius:   React.PropTypes.number,
+	    circleRadius: React.PropTypes.number,
 	    hoverAnimation: React.PropTypes.bool,
-	    margins:        React.PropTypes.object,
-	 },
+	    margins: React.PropTypes.object,
+	    data: React.PropTypes.array.isRequired
+	  },
 	
-	  getDefaultProps:function() {
+	  mixins: [CartesianChartPropsMixin, DefaultAccessorsMixin, ViewBoxMixin, TooltipMixin],
+	
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      circleRadius:    3,
+	      circleRadius: 3,
 	      className: 'rd3-linechart',
 	      hoverAnimation: true,
-	      margins:        {top: 10, right: 20, bottom: 50, left: 45},
+	      margins: { top: 10, right: 20, bottom: 50, left: 45 },
 	      xAxisClassName: 'rd3-linechart-xaxis',
 	      yAxisClassName: 'rd3-linechart-yaxis',
+	      data: []
 	    };
 	  },
 	
+	
 	  _calculateScales: utils.calculateScales,
 	
-	  render:function() {
-	
+	  render: function render() {
 	    var props = this.props;
 	
 	    if (this.props.data && this.props.data.length < 1) {
 	      return null;
 	    }
 	
-	    // Calculate inner chart dimensions
-	    var innerWidth, innerHeight;
+	    var _getDimensions = this.getDimensions();
 	
-	    innerWidth = this.getOuterDimensions().width - props.margins.left - props.margins.right;
-	    innerHeight = this.getOuterDimensions().height - props.margins.top - props.margins.bottom;
+	    var innerWidth = _getDimensions.innerWidth;
+	    var innerHeight = _getDimensions.innerHeight;
+	    var trans = _getDimensions.trans;
+	    var svgMargins = _getDimensions.svgMargins;
+	
+	    var yOrient = this.getYOrient();
+	    var domain = props.domain || {};
 	
 	    if (!Array.isArray(props.data)) {
 	      props.data = [props.data];
@@ -47108,103 +47545,118 @@
 	    // Returns an object of flattened allValues, xValues, and yValues
 	    var flattenedData = utils.flattenData(props.data, props.xAccessor, props.yAccessor);
 	
-	    var allValues = flattenedData.allValues,
-	        xValues = flattenedData.xValues,
-	        yValues = flattenedData.yValues;
-	    var scales = this._calculateScales(innerWidth, innerHeight, xValues, yValues);
-	    var trans = "translate(" + (props.yAxisOffset < 0 ? props.margins.left + Math.abs(props.yAxisOffset) : props.margins.left) + "," + props.margins.top + ")";
+	    var allValues = flattenedData.allValues;
+	    var xValues = flattenedData.xValues;
+	    var yValues = flattenedData.yValues;
+	    var scales = this._calculateScales(innerWidth, innerHeight, xValues, yValues, domain.x, domain.y);
 	
-	    return (
-	      React.createElement(Chart, {
-	        viewBox: this.getViewBox(), 
-	        legend: props.legend, 
-	        data: props.data, 
-	        margins: props.margins, 
-	        colors: props.colors, 
-	        colorAccessor: props.colorAccessor, 
-	        width: props.width, 
-	        height: props.height, 
-	        title: props.title}, 
-	        React.createElement("g", {transform: trans, className: props.className}, 
+	    return React.createElement(
+	      'span',
+	      { onMouseLeave: this.onMouseLeave },
+	      React.createElement(
+	        Chart,
+	        {
+	          viewBox: this.getViewBox(),
+	          legend: props.legend,
+	          sideOffset: props.sideOffset,
+	          data: props.data,
+	          margins: props.margins,
+	          colors: props.colors,
+	          colorAccessor: props.colorAccessor,
+	          width: props.width,
+	          height: props.height,
+	          title: props.title,
+	          shouldUpdate: !this.state.changeState
+	        },
+	        React.createElement(
+	          'g',
+	          { transform: trans, className: props.className },
 	          React.createElement(XAxis, {
-	            xAxisClassName: props.xAxisClassName, 
-	            strokeWidth: props.xAxisStrokeWidth, 
-	            xAxisTickValues: props.xAxisTickValues, 
-	            xAxisTickInterval: props.xAxisTickInterval, 
-	            xAxisOffset: props.xAxisOffset, 
-	            xScale: scales.xScale, 
-	            xAxisLabel: props.xAxisLabel, 
-	            xAxisLabelOffset: props.xAxisLabelOffset, 
-	            tickFormatting: props.xAxisFormatter, 
-	            xOrient: props.xOrient, 
-	            yOrient: props.yOrient, 
-	            data: props.data, 
-	            margins: props.margins, 
-	            width: innerWidth, 
-	            height: innerHeight, 
-	            stroke: props.axesColor, 
-	            gridVertical: props.gridVertical, 
-	            gridVerticalStroke: props.gridVerticalStroke, 
-	            gridVerticalStrokeWidth: props.gridVerticalStrokeWidth, 
-	            gridVerticalStrokeDash: props.gridVerticalStrokeDash}
-	          ), 
+	            xAxisClassName: props.xAxisClassName,
+	            strokeWidth: props.xAxisStrokeWidth,
+	            xAxisTickValues: props.xAxisTickValues,
+	            xAxisTickCount: props.xAxisTickCount,
+	            xAxisTickInterval: props.xAxisTickInterval,
+	            xAxisOffset: props.xAxisOffset,
+	            xScale: scales.xScale,
+	            xAxisLabel: props.xAxisLabel,
+	            xAxisLabelOffset: props.xAxisLabelOffset,
+	            tickFormatting: props.xAxisFormatter,
+	            tickStroke: props.xAxisTickStroke,
+	            tickTextStroke: props.xAxisTickTextStroke,
+	            xOrient: props.xOrient,
+	            yOrient: yOrient,
+	            data: props.data,
+	            margins: svgMargins,
+	            width: innerWidth,
+	            height: innerHeight,
+	            horizontalChart: props.horizontal,
+	            stroke: props.axesColor,
+	            gridVertical: props.gridVertical,
+	            gridVerticalStroke: props.gridVerticalStroke,
+	            gridVerticalStrokeWidth: props.gridVerticalStrokeWidth,
+	            gridVerticalStrokeDash: props.gridVerticalStrokeDash
+	          }),
 	          React.createElement(YAxis, {
-	            yAxisClassName: props.yAxisClassName, 
-	            strokeWidth: props.yAxisStrokeWidth, 
-	            yScale: scales.yScale, 
-	            yAxisTickValues: props.yAxisTickValues, 
-	            yAxisTickCount: props.yAxisTickCount, 
-	            yAxisOffset: props.yAxisOffset, 
-	            yAxisLabel: props.yAxisLabel, 
-	            yAxisLabelOffset: props.yAxisLabelOffset, 
-	            tickFormatting: props.yAxisFormatter, 
-	            xOrient: props.xOrient, 
-	            yOrient: props.yOrient, 
-	            margins: props.margins, 
-	            width: innerWidth, 
-	            height: innerHeight, 
-	            stroke: props.axesColor, 
-	            gridHorizontal: props.gridHorizontal, 
-	            gridHorizontalStroke: props.gridHorizontalStroke, 
-	            gridHorizontalStrokeWidth: props.gridHorizontalStrokeWidth, 
-	            gridHorizontalStrokeDash: props.gridHorizontalStrokeDash}
-	          ), 
+	            yAxisClassName: props.yAxisClassName,
+	            strokeWidth: props.yAxisStrokeWidth,
+	            yScale: scales.yScale,
+	            yAxisTickValues: props.yAxisTickValues,
+	            yAxisTickCount: props.yAxisTickCount,
+	            yAxisOffset: props.yAxisOffset,
+	            yAxisLabel: props.yAxisLabel,
+	            yAxisLabelOffset: props.yAxisLabelOffset,
+	            tickFormatting: props.yAxisFormatter,
+	            tickStroke: props.yAxisTickStroke,
+	            tickTextStroke: props.yAxisTickTextStroke,
+	            xOrient: props.xOrient,
+	            yOrient: yOrient,
+	            margins: svgMargins,
+	            width: innerWidth,
+	            height: innerHeight,
+	            horizontalChart: props.horizontal,
+	            stroke: props.axesColor,
+	            gridHorizontal: props.gridHorizontal,
+	            gridHorizontalStroke: props.gridHorizontalStroke,
+	            gridHorizontalStrokeWidth: props.gridHorizontalStrokeWidth,
+	            gridHorizontalStrokeDash: props.gridHorizontalStrokeDash
+	          }),
 	          React.createElement(DataSeries, {
-	            xScale: scales.xScale, 
-	            yScale: scales.yScale, 
-	            xAccessor: props.xAccessor, 
-	            yAccessor: props.yAccessor, 
-	            hoverAnimation: props.hoverAnimation, 
-	            circleRadius: props.circleRadius, 
-	            data: props.data, 
-	            value: allValues, 
-	            interpolationType: props.interpolationType, 
-	            colors: props.colors, 
-	            colorAccessor: props.colorAccessor, 
-	            width: innerWidth, 
-	            height: innerHeight}
-	            )
+	            xScale: scales.xScale,
+	            yScale: scales.yScale,
+	            xAccessor: props.xAccessor,
+	            yAccessor: props.yAccessor,
+	            hoverAnimation: props.hoverAnimation,
+	            circleRadius: props.circleRadius,
+	            data: props.data,
+	            value: allValues,
+	            interpolationType: props.interpolationType,
+	            colors: props.colors,
+	            colorAccessor: props.colorAccessor,
+	            width: innerWidth,
+	            height: innerHeight,
+	            onMouseOver: this.onMouseOver
+	          })
 	        )
-	      )
+	      ),
+	      props.showTooltip ? React.createElement(Tooltip, this.state.tooltip) : null
 	    );
 	  }
-	
 	});
 
-
 /***/ },
-/* 421 */
-/*!********************************************!*\
-  !*** ./~/react-d3/linechart/DataSeries.js ***!
-  \********************************************/
+/* 425 */
+/*!*************************************************!*\
+  !*** ./~/rd3/build/cjs/linechart/DataSeries.js ***!
+  \*************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
 	var d3 = __webpack_require__(/*! d3 */ 398);
-	var VoronoiCircleContainer = __webpack_require__(/*! ./VoronoiCircleContainer */ 422);
-	var Line = __webpack_require__(/*! ./Line */ 424);
+	var VoronoiCircleContainer = __webpack_require__(/*! ./VoronoiCircleContainer */ 426);
+	var Line = __webpack_require__(/*! ./Line */ 428);
 	
 	module.exports = React.createClass({
 	
@@ -47217,239 +47669,262 @@
 	    interpolationType: React.PropTypes.string,
 	    xAccessor: React.PropTypes.func,
 	    yAccessor: React.PropTypes.func,
+	    hoverAnimation: React.PropTypes.bool
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      data: [],
-	      xAccessor: function(d)  {return d.x;},
-	      yAccessor: function(d)  {return d.y;},
-	      interpolationType: 'linear'
+	      xAccessor: function xAccessor(d) {
+	        return d.x;
+	      },
+	      yAccessor: function yAccessor(d) {
+	        return d.y;
+	      },
+	      interpolationType: 'linear',
+	      hoverAnimation: false
 	    };
 	  },
-	  
-	  _isDate:function(d, accessor) {
-	      return Object.prototype.toString.call(accessor(d)) === '[object Date]';
+	  _isDate: function _isDate(d, accessor) {
+	    return Object.prototype.toString.call(accessor(d)) === '[object Date]';
 	  },
-	
-	  render:function() {
+	  render: function render() {
 	    var props = this.props;
 	    var xScale = props.xScale;
 	    var yScale = props.yScale;
-	    var xAccessor = props.xAccessor,
-	        yAccessor = props.yAccessor;
-	    
-	    var interpolatePath = d3.svg.line()
-	        .y( function(d)  {return props.yScale(yAccessor(d));} )
-	        .interpolate(props.interpolationType);
+	    var xAccessor = props.xAccessor;
+	    var yAccessor = props.yAccessor;
 	
-	        if (this._isDate(props.data[0].values[0], xAccessor)) {
-	          interpolatePath.x(function(d) {
-	            return props.xScale(props.xAccessor(d).getTime());
-	          });
-	        } else {
-	          interpolatePath.x(function(d) {
-	            return props.xScale(props.xAccessor(d));
-	          });
-	        }
+	    var interpolatePath = d3.svg.line().y(function (d) {
+	      return props.yScale(yAccessor(d));
+	    }).interpolate(props.interpolationType);
 	
-	    var lines = props.data.map(function(series, idx)  {
-	      return (
-	        React.createElement(Line, {
-	          path: interpolatePath(series.values), 
-	          stroke: props.colors(props.colorAccessor(series, idx)), 
-	          strokeWidth: series.strokeWidth, 
-	          strokeDashArray: series.strokeDashArray, 
-	          seriesName: series.name, 
-	          key: idx}
-	        )
-	      );
+	    if (this._isDate(props.data[0].values[0], xAccessor)) {
+	      interpolatePath.x(function (d) {
+	        return props.xScale(props.xAccessor(d).getTime());
+	      });
+	    } else {
+	      interpolatePath.x(function (d) {
+	        return props.xScale(props.xAccessor(d));
+	      });
+	    }
+	
+	    var lines = props.data.map(function (series, idx) {
+	      return React.createElement(Line, {
+	        path: interpolatePath(series.values),
+	        stroke: props.colors(props.colorAccessor(series, idx)),
+	        strokeWidth: series.strokeWidth,
+	        strokeDashArray: series.strokeDashArray,
+	        seriesName: series.name,
+	        key: idx
+	      });
 	    });
 	
-	    var voronoi = d3.geom.voronoi()
-	      .x(function(d){ return xScale(d.coord.x); })
-	      .y(function(d){ return yScale(d.coord.y); })
-	      .clipExtent([[0, 0], [ props.width , props.height]]);
+	    var voronoi = d3.geom.voronoi().x(function (d) {
+	      return xScale(d.coord.x);
+	    }).y(function (d) {
+	      return yScale(d.coord.y);
+	    }).clipExtent([[0, 0], [props.width, props.height]]);
 	
-	    var cx, cy, circleFill;
-	    var regions = voronoi(props.value).map(function(vnode, idx) {
+	    var cx = void 0;
+	    var cy = void 0;
+	    var circleFill = void 0;
+	    var regions = voronoi(props.value).map(function (vnode, idx) {
 	      var point = vnode.point.coord;
-	      if (Object.prototype.toString.call(xAccessor(point)) === '[object Date]') {
-	        cx = props.xScale(xAccessor(point).getTime());
-	      } else {
-	        cx = props.xScale(xAccessor(point));
-	      }
-	      if (Object.prototype.toString.call(yAccessor(point)) === '[object Date]') {
-	        cy = props.yScale(yAccessor(point).getTime());
-	      } else {
-	        cy = props.yScale(yAccessor(point));
-	      }
-	      circleFill = props.colors(props.colorAccessor(vnode, vnode.point.seriesIndex));
-	      
-	      return (
-	          React.createElement(VoronoiCircleContainer, {
-	              key: idx, 
-	              circleFill: circleFill, 
-	              vnode: vnode, 
-	              cx: cx, cy: cy, 
-	              circleRadius: props.circleRadius}
-	          )
-	      );
-	    }.bind(this));
+	      cx = props.xScale(point.x);
+	      cy = props.yScale(point.y);
 	
-	    return (
-	      React.createElement("g", null, 
-	        React.createElement("g", null, regions), 
-	        React.createElement("g", null, lines)
+	      circleFill = props.colors(props.colorAccessor(vnode, vnode.point.seriesIndex));
+	
+	      return React.createElement(VoronoiCircleContainer, {
+	        key: idx,
+	        circleFill: circleFill,
+	        vnode: vnode,
+	        hoverAnimation: props.hoverAnimation,
+	        cx: cx, cy: cy,
+	        circleRadius: props.circleRadius,
+	        onMouseOver: props.onMouseOver,
+	        dataPoint: {
+	          xValue: point.x,
+	          yValue: point.y,
+	          seriesName: vnode.point.series.name
+	        }
+	      });
+	    });
+	
+	    return React.createElement(
+	      'g',
+	      null,
+	      React.createElement(
+	        'g',
+	        null,
+	        regions
+	      ),
+	      React.createElement(
+	        'g',
+	        null,
+	        lines
 	      )
 	    );
 	  }
-	
 	});
 
-
 /***/ },
-/* 422 */
-/*!********************************************************!*\
-  !*** ./~/react-d3/linechart/VoronoiCircleContainer.js ***!
-  \********************************************************/
+/* 426 */
+/*!*************************************************************!*\
+  !*** ./~/rd3/build/cjs/linechart/VoronoiCircleContainer.js ***!
+  \*************************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
+	
+	var _require = __webpack_require__(/*! react-dom */ 35);
+	
+	var findDOMNode = _require.findDOMNode;
+	
 	var shade = __webpack_require__(/*! ../utils */ 402).shade;
-	var VoronoiCircle = __webpack_require__(/*! ./VoronoiCircle */ 423);
+	var VoronoiCircle = __webpack_require__(/*! ./VoronoiCircle */ 427);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'VornoiCircleContainer',
 	
-	  getDefaultProps:function() {
-	    return { 
+	  propTypes: {
+	    circleRadius: React.PropTypes.any,
+	    circleFill: React.PropTypes.any,
+	    onMouseOver: React.PropTypes.any,
+	    dataPoint: React.PropTypes.any
+	  },
+	
+	  getDefaultProps: function getDefaultProps() {
+	    return {
 	      circleRadius: 3,
 	      circleFill: '#1f77b4',
 	      hoverAnimation: true
 	    };
 	  },
-	
-	  getInitialState:function() {
-	    return { 
+	  getInitialState: function getInitialState() {
+	    return {
 	      circleRadius: this.props.circleRadius,
 	      circleFill: this.props.circleFill
 	    };
 	  },
-	
-	  render:function() {
-	
+	  _animateCircle: function _animateCircle() {
+	    var rect = findDOMNode(this).getElementsByTagName('circle')[0].getBoundingClientRect();
+	    this.props.onMouseOver.call(this, rect.right, rect.top, this.props.dataPoint);
+	    this.setState({
+	      circleRadius: this.props.circleRadius * (5 / 4),
+	      circleFill: shade(this.props.circleFill, 0.2)
+	    });
+	  },
+	  _restoreCircle: function _restoreCircle() {
+	    this.setState({
+	      circleRadius: this.props.circleRadius,
+	      circleFill: this.props.circleFill
+	    });
+	  },
+	  _drawPath: function _drawPath(d) {
+	    if (d === undefined) {
+	      return 'M Z';
+	    }
+	    return 'M' + d.join(',') + 'Z';
+	  },
+	  render: function render() {
 	    var props = this.props;
 	
 	    // animation controller
-	    var handleMouseOver, handleMouseLeave;
-	    if(props.hoverAnimation) {
+	    var handleMouseOver = void 0;
+	    var handleMouseLeave = void 0;
+	    if (props.hoverAnimation) {
 	      handleMouseOver = this._animateCircle;
 	      handleMouseLeave = this._restoreCircle;
 	    } else {
 	      handleMouseOver = handleMouseLeave = null;
 	    }
 	
-	    return (
-	      React.createElement("g", null, 
-	        React.createElement(VoronoiCircle, {
-	            handleMouseOver: handleMouseOver, 
-	            handleMouseLeave: handleMouseLeave, 
-	            voronoiPath: this._drawPath(props.vnode), 
-	            cx: props.cx, 
-	            cy: props.cy, 
-	            circleRadius: this.state.circleRadius, 
-	            circleFill: this.state.circleFill}
-	        )
-	      )
+	    return React.createElement(
+	      'g',
+	      null,
+	      React.createElement(VoronoiCircle, {
+	        handleMouseOver: handleMouseOver,
+	        handleMouseLeave: handleMouseLeave,
+	        voronoiPath: this._drawPath(props.vnode),
+	        cx: props.cx,
+	        cy: props.cy,
+	        circleRadius: this.state.circleRadius,
+	        circleFill: this.state.circleFill
+	      })
 	    );
-	  },
-	
-	  _animateCircle:function() {
-	    this.setState({ 
-	      circleRadius: this.props.circleRadius * ( 5 / 4 ),
-	      circleFill: shade(this.props.circleFill, 0.2)
-	    });
-	  },
-	
-	  _restoreCircle:function() {
-	    this.setState({ 
-	      circleRadius: this.props.circleRadius,
-	      circleFill: this.props.circleFill
-	    });
-	  },
-	
-	  _drawPath: function(d) {
-	    if(d === undefined) {
-	      return; 
-	    }  
-	    return 'M' + d.join(',') + 'Z';
-	  },
+	  }
 	});
 
-
 /***/ },
-/* 423 */
-/*!***********************************************!*\
-  !*** ./~/react-d3/linechart/VoronoiCircle.js ***!
-  \***********************************************/
+/* 427 */
+/*!****************************************************!*\
+  !*** ./~/rd3/build/cjs/linechart/VoronoiCircle.js ***!
+  \****************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'VoronoiCircle',
 	
-	  getDefaultProps:function() {
-	    return { 
-	      circleRadius: 3,
-	      circleFill: '#1f77b4',
-	    };
+	  // TODO: Check prop types
+	  propTypes: {
+	    handleMouseOver: React.PropTypes.any,
+	    handleMouseLeave: React.PropTypes.any,
+	    voronoiPath: React.PropTypes.any,
+	    cx: React.PropTypes.any,
+	    cy: React.PropTypes.any,
+	    circleRadius: React.PropTypes.any,
+	    circleFill: React.PropTypes.any
 	  },
 	
-	  render:function() {
-	    return (
-	      React.createElement("g", null, 
-	        React.createElement("path", {
-	          onMouseOver: this.props.handleMouseOver, 
-	          onMouseLeave: this.props.handleMouseLeave, 
-	          fill: "transparent", 
-	          d: this.props.voronoiPath}
-	        ), 
-	        React.createElement("circle", {
-	          onMouseOver: this.props.handleMouseOver, 
-	          onMouseLeave: this.props.handleMouseLeave, 
-	          cx: this.props.cx, 
-	          cy: this.props.cy, 
-	          r: this.props.circleRadius, 
-	          fill: this.props.circleFill, 
-	          className: "rd3-linechart-circle"}
-	        )
-	      )
-	    );
+	  getDefaultProps: function getDefaultProps() {
+	    return {
+	      circleRadius: 3,
+	      circleFill: '#1f77b4'
+	    };
 	  },
+	  render: function render() {
+	    return React.createElement(
+	      'g',
+	      null,
+	      React.createElement('path', {
+	        onMouseOver: this.props.handleMouseOver,
+	        onMouseLeave: this.props.handleMouseLeave,
+	        fill: 'transparent',
+	        d: this.props.voronoiPath
+	      }),
+	      React.createElement('circle', {
+	        onMouseOver: this.props.handleMouseOver,
+	        onMouseLeave: this.props.handleMouseLeave,
+	        cx: this.props.cx,
+	        cy: this.props.cy,
+	        r: this.props.circleRadius,
+	        fill: this.props.circleFill,
+	        className: 'rd3-linechart-circle'
+	      })
+	    );
+	  }
 	});
 
-
 /***/ },
-/* 424 */
-/*!**************************************!*\
-  !*** ./~/react-d3/linechart/Line.js ***!
-  \**************************************/
+/* 428 */
+/*!*******************************************!*\
+  !*** ./~/rd3/build/cjs/linechart/Line.js ***!
+  \*******************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
-	
 	
 	module.exports = React.createClass({
 	
@@ -47460,10 +47935,10 @@
 	    path: React.PropTypes.string,
 	    stroke: React.PropTypes.string,
 	    strokeWidth: React.PropTypes.number,
-	    strokeDashArray: React.PropTypes.string,
+	    strokeDashArray: React.PropTypes.string
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      stroke: '#3182bd',
 	      fill: 'none',
@@ -47471,274 +47946,296 @@
 	      className: 'rd3-linechart-path'
 	    };
 	  },
-	
-	  render:function() {
+	  render: function render() {
 	    var props = this.props;
-	    return (
-	      React.createElement("path", {
-	        d: props.path, 
-	        stroke: props.stroke, 
-	        strokeWidth: props.strokeWidth, 
-	        strokeDasharray: props.strokeDashArray, 
-	        fill: props.fill, 
-	        className: props.className}
-	      )
-	    );
+	    return React.createElement('path', {
+	      d: props.path,
+	      stroke: props.stroke,
+	      strokeWidth: props.strokeWidth,
+	      strokeDasharray: props.strokeDashArray,
+	      fill: props.fill,
+	      className: props.className
+	    });
 	  }
-	
 	});
 
-
 /***/ },
-/* 425 */
-/*!**************************************!*\
-  !*** ./~/react-d3/piechart/index.js ***!
-  \**************************************/
+/* 429 */
+/*!*******************************************!*\
+  !*** ./~/rd3/build/cjs/piechart/index.js ***!
+  \*******************************************/
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	
-	exports.PieChart = __webpack_require__(/*! ./PieChart */ 426);
-
+	exports.PieChart = __webpack_require__(/*! ./PieChart */ 430);
 
 /***/ },
-/* 426 */
-/*!*****************************************!*\
-  !*** ./~/react-d3/piechart/PieChart.js ***!
-  \*****************************************/
+/* 430 */
+/*!**********************************************!*\
+  !*** ./~/rd3/build/cjs/piechart/PieChart.js ***!
+  \**********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var d3 = __webpack_require__(/*! d3 */ 398);
 	var React = __webpack_require__(/*! react */ 2);
-	var DataSeries = __webpack_require__(/*! ./DataSeries */ 427);
-	var Chart = __webpack_require__(/*! ../common */ 403).Chart;
+	var DataSeries = __webpack_require__(/*! ./DataSeries */ 431);
+	
+	var _require = __webpack_require__(/*! ../common */ 403);
+	
+	var Chart = _require.Chart;
+	var Tooltip = _require.Tooltip;
+	
+	var TooltipMixin = __webpack_require__(/*! ../mixins */ 418).TooltipMixin;
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'PieChart',
 	
 	  propTypes: {
-	    data:               React.PropTypes.array,
-	    radius:             React.PropTypes.number,
-	    cx:                 React.PropTypes.number,
-	    cy:                 React.PropTypes.number,
-	    labelTextFill:      React.PropTypes.string,
-	    valueTextFill:      React.PropTypes.string,
+	    data: React.PropTypes.array,
+	    radius: React.PropTypes.number,
+	    cx: React.PropTypes.number,
+	    cy: React.PropTypes.number,
+	    labelTextFill: React.PropTypes.string,
+	    valueTextFill: React.PropTypes.string,
 	    valueTextFormatter: React.PropTypes.func,
-	    colors:             React.PropTypes.func,
-	    colorAccessor:      React.PropTypes.func,
-	    title:              React.PropTypes.string,
-	    showInnerLabels:    React.PropTypes.bool,
-	    showOuterLabels:    React.PropTypes.bool,
-	    sectorBorderColor:  React.PropTypes.string,
-	    hoverAnimation:     React.PropTypes.bool
+	    colors: React.PropTypes.func,
+	    colorAccessor: React.PropTypes.func,
+	    title: React.PropTypes.string,
+	    showInnerLabels: React.PropTypes.bool,
+	    showOuterLabels: React.PropTypes.bool,
+	    sectorBorderColor: React.PropTypes.string,
+	    hoverAnimation: React.PropTypes.bool
 	  },
 	
-	  getDefaultProps: function() {
+	  mixins: [TooltipMixin],
+	
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      data:               [],
-	      title:              '',
-	      colors:             d3.scale.category20c(),
-	      colorAccessor:      function(d, idx)  {return idx;},
-	      valueTextFormatter: function(val)  {return ( val + "%");},
-	      hoverAnimation:     true
+	      data: [],
+	      title: '',
+	      colors: d3.scale.category20c(),
+	      colorAccessor: function colorAccessor(d, idx) {
+	        return idx;
+	      },
+	      valueTextFormatter: function valueTextFormatter(val) {
+	        return val + '%';
+	      },
+	      hoverAnimation: true
 	    };
 	  },
-	
-	  render: function() {
+	  render: function render() {
 	    var props = this.props;
 	
-	    var transform = ("translate(" + ( props.cx || props.width/2) + "," + ( props.cy || props.height/2) + ")");
+	    if (props.data && props.data.length < 1) {
+	      return null;
+	    }
+	    var transform = 'translate(' + (props.cx || props.width / 2) + ',' + (props.cy || props.height / 2) + ')';
 	
-	    var values = props.data.map( function(item)  {return item.value;} );
-	    var labels = props.data.map( function(item)  {return item.label;} );
+	    var values = props.data.map(function (item) {
+	      return item.value;
+	    });
+	    var labels = props.data.map(function (item) {
+	      return item.label;
+	    });
 	
-	    return (
-	      React.createElement(Chart, {
-	        width: props.width, 
-	        height: props.height, 
-	        title: props.title
-	      }, 
-	        React.createElement("g", {className: "rd3-piechart"}, 
+	    return React.createElement(
+	      'span',
+	      null,
+	      React.createElement(
+	        Chart,
+	        {
+	          width: props.width,
+	          height: props.height,
+	          title: props.title,
+	          shouldUpdate: !this.state.changeState
+	        },
+	        React.createElement(
+	          'g',
+	          { className: 'rd3-piechart' },
 	          React.createElement(DataSeries, {
-	            labelTextFill: props.labelTextFill, 
-	            valueTextFill: props.valueTextFill, 
-	            valueTextFormatter: props.valueTextFormatter, 
-	            data: props.data, 
-	            values: values, 
-	            labels: labels, 
-	            colors: props.colors, 
-	            colorAccessor: props.colorAccessor, 
-	            transform: transform, 
-	            width: props.width, 
-	            height: props.height, 
-	            radius: props.radius, 
-	            innerRadius: props.innerRadius, 
-	            showInnerLabels: props.showInnerLabels, 
-	            showOuterLabels: props.showOuterLabels, 
-	            sectorBorderColor: props.sectorBorderColor, 
-	            hoverAnimation: props.hoverAnimation}
-	          )
+	            labelTextFill: props.labelTextFill,
+	            valueTextFill: props.valueTextFill,
+	            valueTextFormatter: props.valueTextFormatter,
+	            data: props.data,
+	            values: values,
+	            labels: labels,
+	            colors: props.colors,
+	            colorAccessor: props.colorAccessor,
+	            transform: transform,
+	            width: props.width,
+	            height: props.height,
+	            radius: props.radius,
+	            innerRadius: props.innerRadius,
+	            showInnerLabels: props.showInnerLabels,
+	            showOuterLabels: props.showOuterLabels,
+	            sectorBorderColor: props.sectorBorderColor,
+	            hoverAnimation: props.hoverAnimation,
+	            onMouseOver: this.onMouseOver,
+	            onMouseLeave: this.onMouseLeave
+	          })
 	        )
-	      )
+	      ),
+	      props.showTooltip ? React.createElement(Tooltip, this.state.tooltip) : null
 	    );
 	  }
-	
 	});
 
-
 /***/ },
-/* 427 */
-/*!*******************************************!*\
-  !*** ./~/react-d3/piechart/DataSeries.js ***!
-  \*******************************************/
+/* 431 */
+/*!************************************************!*\
+  !*** ./~/rd3/build/cjs/piechart/DataSeries.js ***!
+  \************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
 	var d3 = __webpack_require__(/*! d3 */ 398);
-	var ArcContainer = __webpack_require__(/*! ./ArcContainer */ 428);
-	
+	var ArcContainer = __webpack_require__(/*! ./ArcContainer */ 432);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'DataSeries',
 	
 	  propTypes: {
-	    data:              React.PropTypes.array,
-	    values:            React.PropTypes.array,
-	    labels:            React.PropTypes.array,
-	    transform:         React.PropTypes.string,
-	    innerRadius:       React.PropTypes.number,
-	    radius:            React.PropTypes.number,
-	    colors:            React.PropTypes.func,
-	    colorAccessor:     React.PropTypes.func,
-	    showInnerLabels:   React.PropTypes.bool,
-	    showOuterLabels:   React.PropTypes.bool,
+	    data: React.PropTypes.array,
+	    values: React.PropTypes.array,
+	    labels: React.PropTypes.array,
+	    transform: React.PropTypes.string,
+	    innerRadius: React.PropTypes.number,
+	    radius: React.PropTypes.number,
+	    colors: React.PropTypes.func,
+	    colorAccessor: React.PropTypes.func,
+	    showInnerLabels: React.PropTypes.bool,
+	    showOuterLabels: React.PropTypes.bool,
 	    sectorBorderColor: React.PropTypes.string
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      data:          [],
-	      innerRadius:   0,
-	      colors:        d3.scale.category20c(),
-	      colorAccessor: function(d, idx)  {return idx;}
+	      data: [],
+	      innerRadius: 0,
+	      colors: d3.scale.category20c(),
+	      colorAccessor: function colorAccessor(d, idx) {
+	        return idx;
+	      }
 	    };
 	  },
-	
-	  render:function() {
-	
+	  render: function render() {
 	    var props = this.props;
 	
-	    var pie = d3.layout
-	      .pie()
-	      .sort(null);
+	    var pie = d3.layout.pie().sort(null);
 	
 	    var arcData = pie(props.values);
 	
-	    var arcs = arcData.map(function(arc, idx)  {
-	      return (
-	        React.createElement(ArcContainer, {
-	          key: idx, 
-	          startAngle: arc.startAngle, 
-	          endAngle: arc.endAngle, 
-	          outerRadius: props.radius, 
-	          innerRadius: props.innerRadius, 
-	          labelTextFill: props.labelTextFill, 
-	          valueTextFill: props.valueTextFill, 
-	          valueTextFormatter: props.valueTextFormatter, 
-	          fill: props.colors(props.colorAccessor(props.data[idx], idx)), 
-	          value: props.values[idx], 
-	          label: props.labels[idx], 
-	          width: props.width, 
-	          showInnerLabels: props.showInnerLabels, 
-	          showOuterLabels: props.showOuterLabels, 
-	          sectorBorderColor: props.sectorBorderColor, 
-	          hoverAnimation: props.hoverAnimation}
-	        )
-	      );
+	    var arcs = arcData.map(function (arc, idx) {
+	      return React.createElement(ArcContainer, {
+	        key: idx,
+	        startAngle: arc.startAngle,
+	        endAngle: arc.endAngle,
+	        outerRadius: props.radius,
+	        innerRadius: props.innerRadius,
+	        labelTextFill: props.labelTextFill,
+	        valueTextFill: props.valueTextFill,
+	        valueTextFormatter: props.valueTextFormatter,
+	        fill: props.colors(props.colorAccessor(props.data[idx], idx)),
+	        value: props.values[idx],
+	        label: props.labels[idx],
+	        width: props.width,
+	        showInnerLabels: props.showInnerLabels,
+	        showOuterLabels: props.showOuterLabels,
+	        sectorBorderColor: props.sectorBorderColor,
+	        hoverAnimation: props.hoverAnimation,
+	        onMouseOver: props.onMouseOver,
+	        onMouseLeave: props.onMouseLeave,
+	        dataPoint: { yValue: props.values[idx], seriesName: props.labels[idx] }
+	      });
 	    });
-	    return (
-	      React.createElement("g", {className: "rd3-piechart-pie", transform: props.transform}, 
-	        arcs
-	      )
+	    return React.createElement(
+	      'g',
+	      { className: 'rd3-piechart-pie', transform: props.transform },
+	      arcs
 	    );
 	  }
 	});
 
-
 /***/ },
-/* 428 */
-/*!*********************************************!*\
-  !*** ./~/react-d3/piechart/ArcContainer.js ***!
-  \*********************************************/
+/* 432 */
+/*!**************************************************!*\
+  !*** ./~/rd3/build/cjs/piechart/ArcContainer.js ***!
+  \**************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
 	var React = __webpack_require__(/*! react */ 2);
+	
+	var _require = __webpack_require__(/*! react-dom */ 35);
+	
+	var findDOMNode = _require.findDOMNode;
+	
 	var shade = __webpack_require__(/*! ../utils */ 402).shade;
-	var Arc = __webpack_require__(/*! ./Arc */ 429);
+	var Arc = __webpack_require__(/*! ./Arc */ 433);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'ArcContainer',
 	
 	  propTypes: {
-	    fill: React.PropTypes.string
-	  },
+	    fill: React.PropTypes.string,
+	    onMouseOver: React.PropTypes.func,
+	    onMouseLeave: React.PropTypes.func,
+	    dataPoint: React.PropTypes.any },
 	
-	  getInitialState:function() {
+	  // TODO prop type?
+	  getInitialState: function getInitialState() {
 	    return {
 	      // fill is named as fill instead of initialFill to avoid
 	      // confusion when passing down props from top parent
 	      fill: this.props.fill
 	    };
 	  },
-	
-	  render:function() {
-	
-	    var props = this.props;
-	    
-	    return (
-	      React.createElement(Arc, React.__spread({},  
-	        this.props, 
-	        {fill: this.state.fill, 
-	        handleMouseOver: props.hoverAnimation ? this._animateArc : null, 
-	        handleMouseLeave: props.hoverAnimation ? this._restoreArc : null})
-	      )
-	    );
-	  },
-	
-	  _animateArc:function() {
+	  _animateArc: function _animateArc() {
+	    var rect = findDOMNode(this).getBoundingClientRect();
+	    this.props.onMouseOver.call(this, rect.right, rect.top, this.props.dataPoint);
 	    this.setState({
 	      fill: shade(this.props.fill, 0.2)
 	    });
 	  },
-	
-	  _restoreArc:function() {
+	  _restoreArc: function _restoreArc() {
+	    this.props.onMouseLeave.call(this);
 	    this.setState({
 	      fill: this.props.fill
 	    });
+	  },
+	  render: function render() {
+	    var props = this.props;
+	
+	    return React.createElement(Arc, _extends({}, this.props, {
+	      fill: this.state.fill,
+	      handleMouseOver: props.hoverAnimation ? this._animateArc : null,
+	      handleMouseLeave: props.hoverAnimation ? this._restoreArc : null
+	    }));
 	  }
 	});
 
-
 /***/ },
-/* 429 */
-/*!************************************!*\
-  !*** ./~/react-d3/piechart/Arc.js ***!
-  \************************************/
+/* 433 */
+/*!*****************************************!*\
+  !*** ./~/rd3/build/cjs/piechart/Arc.js ***!
+  \*****************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
 	var d3 = __webpack_require__(/*! d3 */ 398);
-	
 	
 	module.exports = React.createClass({
 	
@@ -47758,7 +48255,7 @@
 	    showOuterLabels: React.PropTypes.bool
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      labelTextFill: 'black',
 	      valueTextFill: 'white',
@@ -47766,170 +48263,181 @@
 	      showOuterLabels: true
 	    };
 	  },
+	  renderInnerLabel: function renderInnerLabel(props, arc) {
+	    // make value text can be formatted
+	    var formattedValue = props.valueTextFormatter(props.value);
+	    return React.createElement(
+	      'text',
+	      {
+	        className: 'rd3-piechart-value',
+	        transform: 'translate(' + arc.centroid() + ')',
+	        dy: '.35em',
+	        style: {
+	          shapeRendering: 'crispEdges',
+	          textAnchor: 'middle',
+	          fill: props.valueTextFill
+	        }
+	      },
+	      formattedValue
+	    );
+	  },
+	  renderOuterLabel: function renderOuterLabel(props) {
+	    var rotate = 'rotate(' + (props.startAngle + props.endAngle) / 2 * (180 / Math.PI) + ')';
+	    var radius = props.outerRadius;
+	    var dist = radius + 35;
+	    var angle = (props.startAngle + props.endAngle) / 2;
+	    var x = dist * (1.2 * Math.sin(angle));
+	    var y = -dist * Math.cos(angle);
+	    var t = 'translate(' + x + ',' + y + ')';
 	
-	  render:function() {
-	    var props = this.props;
-	
-	    var arc = d3.svg.arc()
-	      .innerRadius(props.innerRadius)
-	      .outerRadius(props.outerRadius)
-	      .startAngle(props.startAngle)
-	      .endAngle(props.endAngle);
-	
-	    return (
-	      React.createElement("g", {className: "rd3-piechart-arc"}, 
-	        React.createElement("path", {
-	          d: arc(), 
-	          fill: props.fill, 
-	          stroke: props.sectorBorderColor, 
-	          onMouseOver: props.handleMouseOver, 
-	          onMouseLeave: props.handleMouseLeave}
-	        ), 
-	        props.showOuterLabels ? this.renderOuterLabel(props, arc) : null, 
-	        props.showInnerLabels ? this.renderInnerLabel(props, arc) : null
+	    return React.createElement(
+	      'g',
+	      null,
+	      React.createElement('line', {
+	        x1: '0',
+	        x2: '0',
+	        y1: -radius - 2,
+	        y2: -radius - 26,
+	        stroke: props.labelTextFill,
+	        transform: rotate,
+	        style: {
+	          fill: props.labelTextFill,
+	          strokeWidth: 2
+	        }
+	      }),
+	      React.createElement(
+	        'text',
+	        {
+	          className: 'rd3-piechart-label',
+	          transform: t,
+	          dy: '.35em',
+	          style: {
+	            textAnchor: 'middle',
+	            fill: props.labelTextFill,
+	            shapeRendering: 'crispEdges'
+	          }
+	        },
+	        props.label
 	      )
 	    );
 	  },
+	  render: function render() {
+	    var props = this.props;
 	
-	  renderInnerLabel:function(props, arc) {
-	    // make value text can be formatted
-	    var formattedValue = props.valueTextFormatter(props.value);
-	    return (
-	        React.createElement("text", {
-	          className: "rd3-piechart-value", 
-	          transform: ("translate(" + arc.centroid() + ")"), 
-	          dy: ".35em", 
-	          style: {
-	            'shapeRendering': 'crispEdges',
-	            'textAnchor': 'middle',
-	            'fill': props.valueTextFill
-	          }}, 
-	           formattedValue 
-	        )
-	      );
-	  },
+	    var arc = d3.svg.arc().innerRadius(props.innerRadius).outerRadius(props.outerRadius).startAngle(props.startAngle).endAngle(props.endAngle);
 	
-	  renderOuterLabel:function(props, arc) {
-	
-	    var rotate = ("rotate(" + ( (props.startAngle+props.endAngle)/2 * (180/Math.PI)) + ")");
-	    var positions = arc.centroid();
-	    var radius = props.outerRadius;
-	    var dist   = radius + 35;
-	    var angle  = (props.startAngle + props.endAngle) / 2;
-	    var x      = dist * (1.2 * Math.sin(angle));
-	    var y      = -dist * Math.cos(angle);
-	    var t = ("translate(" + x + "," + y + ")");
-	
-	    return  (
-	      React.createElement("g", null, 
-	        React.createElement("line", {
-	          x1: "0", 
-	          x2: "0", 
-	          y1: -radius - 2, 
-	          y2: -radius - 26, 
-	          stroke: props.labelTextFill, 
-	          transform: rotate, 
-	          style: {
-	            'fill': props.labelTextFill,
-	            'strokeWidth': 2
-	          }
-	          }
-	        ), 
-	        React.createElement("text", {
-	          className: "rd3-piechart-label", 
-	          transform: t, 
-	          dy: ".35em", 
-	          style: {
-	            'textAnchor': 'middle',
-	            'fill': props.labelTextFill,
-	            'shapeRendering': 'crispEdges'
-	          }}, 
-	          props.label
-	        )
-	      )
+	    return React.createElement(
+	      'g',
+	      { className: 'rd3-piechart-arc' },
+	      React.createElement('path', {
+	        d: arc(),
+	        fill: props.fill,
+	        stroke: props.sectorBorderColor,
+	        onMouseOver: props.handleMouseOver,
+	        onMouseLeave: props.handleMouseLeave
+	      }),
+	      props.showOuterLabels ? this.renderOuterLabel(props, arc) : null,
+	      props.showInnerLabels ? this.renderInnerLabel(props, arc) : null
 	    );
 	  }
 	});
 
-
 /***/ },
-/* 430 */
-/*!***************************************!*\
-  !*** ./~/react-d3/areachart/index.js ***!
-  \***************************************/
+/* 434 */
+/*!********************************************!*\
+  !*** ./~/rd3/build/cjs/areachart/index.js ***!
+  \********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	
-	exports.AreaChart = __webpack_require__(/*! ./AreaChart */ 431);
-
+	exports.AreaChart = __webpack_require__(/*! ./AreaChart */ 435);
 
 /***/ },
-/* 431 */
-/*!*******************************************!*\
-  !*** ./~/react-d3/areachart/AreaChart.js ***!
-  \*******************************************/
+/* 435 */
+/*!************************************************!*\
+  !*** ./~/rd3/build/cjs/areachart/AreaChart.js ***!
+  \************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
 	var d3 = __webpack_require__(/*! d3 */ 398);
-	var DataSeries = __webpack_require__(/*! ./DataSeries */ 432);
-	var $__0=      __webpack_require__(/*! ../common */ 403),Chart=$__0.Chart,XAxis=$__0.XAxis,YAxis=$__0.YAxis;
-	var $__1=     __webpack_require__(/*! ../mixins */ 412),CartesianChartPropsMixin=$__1.CartesianChartPropsMixin,ViewBoxMixin=$__1.ViewBoxMixin;
+	var DataSeries = __webpack_require__(/*! ./DataSeries */ 436);
+	
+	var _require = __webpack_require__(/*! ../common */ 403);
+	
+	var Chart = _require.Chart;
+	var XAxis = _require.XAxis;
+	var YAxis = _require.YAxis;
+	
+	var _require2 = __webpack_require__(/*! ../mixins */ 418);
+	
+	var CartesianChartPropsMixin = _require2.CartesianChartPropsMixin;
+	var DefaultAccessorsMixin = _require2.DefaultAccessorsMixin;
+	var ViewBoxMixin = _require2.ViewBoxMixin;
+	
 	
 	module.exports = React.createClass({
-	
-	  mixins: [ CartesianChartPropsMixin, ViewBoxMixin ],
 	
 	  displayName: 'AreaChart',
 	
 	  propTypes: {
-	    margins:           React.PropTypes.object,
-	    interpolate:       React.PropTypes.bool,
+	    margins: React.PropTypes.object,
+	    interpolate: React.PropTypes.bool,
 	    interpolationType: React.PropTypes.string,
-	    hoverAnimation:    React.PropTypes.bool,
-	 },
+	    hoverAnimation: React.PropTypes.bool,
+	    data: React.PropTypes.array.isRequired
+	  },
 	
-	  getDefaultProps:function() {
+	  mixins: [CartesianChartPropsMixin, DefaultAccessorsMixin, ViewBoxMixin],
+	
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      margins: {top: 10, right: 20, bottom: 40, left: 45},
+	      margins: { top: 10, right: 20, bottom: 40, left: 45 },
 	      yAxisTickCount: 4,
 	      interpolate: false,
 	      interpolationType: null,
 	      className: 'rd3-areachart',
-	      hoverAnimation: true
+	      hoverAnimation: true,
+	      data: []
 	    };
 	  },
-	
-	  render:function() {
-	
+	  render: function render() {
 	    var props = this.props;
-	
 	    var data = props.data;
-	
 	    var interpolationType = props.interpolationType || (props.interpolate ? 'cardinal' : 'linear');
 	
-	    // Calculate inner chart dimensions
-	    var innerWidth, innerHeight;
-	    innerWidth = this.getOuterDimensions().width - props.margins.left - props.margins.right;
-	    innerHeight = this.getOuterDimensions().height - props.margins.top - props.margins.bottom;
+	    var _getDimensions = this.getDimensions();
+	
+	    var innerWidth = _getDimensions.innerWidth;
+	    var innerHeight = _getDimensions.innerHeight;
+	    var trans = _getDimensions.trans;
+	    var svgMargins = _getDimensions.svgMargins;
+	
+	    var yOrient = this.getYOrient();
 	
 	    if (!Array.isArray(data)) {
 	      data = [data];
 	    }
+	    if (this.props.data && this.props.data.length < 1) {
+	      return null;
+	    }
 	
-	    var yScale = d3.scale.linear()
-	      .range([innerHeight, 0]);
+	    var yScale = d3.scale.linear().range([innerHeight, 0]);
 	
 	    var xValues = [];
 	    var yValues = [];
 	    var seriesNames = [];
 	    var yMaxValues = [];
-	    data.forEach( function(series)  {
+	    var domain = props.domain || {};
+	    var xDomain = domain.x || [];
+	    var yDomain = domain.y || [];
+	    data.forEach(function (series) {
 	      var upper = 0;
 	      seriesNames.push(series.name);
-	      series.values.forEach(function(val, idx)  {
+	      series.values.forEach(function (val) {
 	        upper = Math.max(upper, props.yAccessor(val));
 	        xValues.push(props.xAccessor(val));
 	        yValues.push(props.yAccessor(val));
@@ -47937,236 +48445,230 @@
 	      yMaxValues.push(upper);
 	    });
 	
-	    var xScale;
+	    var xScale = void 0;
 	    if (xValues.length > 0 && Object.prototype.toString.call(xValues[0]) === '[object Date]' && props.xAxisTickInterval) {
-	      xScale = d3.time.scale()
-	        .range([0, innerWidth]);
+	      xScale = d3.time.scale().range([0, innerWidth]);
 	    } else {
-	      xScale = d3.scale.linear()
-	        .range([0, innerWidth]);
+	      xScale = d3.scale.linear().range([0, innerWidth]);
 	    }
 	
-	    xScale.domain(d3.extent(xValues));
-	    yScale.domain([0, d3.sum(yMaxValues)]);
+	    var xdomain = d3.extent(xValues);
+	    if (xDomain[0] !== undefined && xDomain[0] !== null) xdomain[0] = xDomain[0];
+	    if (xDomain[1] !== undefined && xDomain[1] !== null) xdomain[1] = xDomain[1];
+	    xScale.domain(xdomain);
+	    var ydomain = [0, d3.sum(yMaxValues)];
+	    if (yDomain[0] !== undefined && yDomain[0] !== null) ydomain[0] = yDomain[0];
+	    if (yDomain[1] !== undefined && yDomain[1] !== null) ydomain[1] = yDomain[1];
+	    yScale.domain(ydomain);
 	
 	    props.colors.domain(seriesNames);
 	
-	    var stack = d3.layout.stack()
-	      .x(props.xAccessor)
-	      .y(props.yAccessor)
-	      .values(function(d) { return d.values; });
+	    var stack = d3.layout.stack().x(props.xAccessor).y(props.yAccessor).values(function (d) {
+	      return d.values;
+	    });
 	
 	    var layers = stack(data);
 	
-	    var trans = ("translate(" +  props.margins.left + "," +  props.margins.top + ")");
-	
-	    var dataSeries = layers.map( function(d, idx)  {
-	      return (
-	          React.createElement(DataSeries, {
-	            key: idx, 
-	            seriesName: d.name, 
-	            fill: props.colors(props.colorAccessor(d, idx)), 
-	            index: idx, 
-	            xScale: xScale, 
-	            yScale: yScale, 
-	            data: d.values, 
-	            xAccessor: props.xAccessor, 
-	            yAccessor: props.yAccessor, 
-	            interpolationType: interpolationType, 
-	            hoverAnimation: props.hoverAnimation}
-	          )
-	        );
+	    var dataSeries = layers.map(function (d, idx) {
+	      return React.createElement(DataSeries, {
+	        key: idx,
+	        seriesName: d.name,
+	        fill: props.colors(props.colorAccessor(d, idx)),
+	        index: idx,
+	        xScale: xScale,
+	        yScale: yScale,
+	        data: d.values,
+	        xAccessor: props.xAccessor,
+	        yAccessor: props.yAccessor,
+	        interpolationType: interpolationType,
+	        hoverAnimation: props.hoverAnimation
 	      });
+	    });
 	
-	    return (
-	      React.createElement(Chart, {
-	        viewBox: this.getViewBox(), 
-	        legend: props.legend, 
-	        data: data, 
-	        margins: props.margins, 
-	        colors: props.colors, 
-	        colorAccessor: props.colorAccessor, 
-	        width: props.width, 
-	        height: props.height, 
+	    return React.createElement(
+	      Chart,
+	      {
+	        viewBox: this.getViewBox(),
+	        legend: props.legend,
+	        data: data,
+	        margins: props.margins,
+	        colors: props.colors,
+	        colorAccessor: props.colorAccessor,
+	        width: props.width,
+	        height: props.height,
 	        title: props.title
-	      }, 
-	        React.createElement("g", {transform: trans, className: props.className}, 
-	          React.createElement(XAxis, {
-	            xAxisClassName: "rd3-areachart-xaxis", 
-	            xScale: xScale, 
-	            xAxisTickValues: props.xAxisTickValues, 
-	            xAxisTickInterval: props.xAxisTickInterval, 
-	            xAxisTickCount: props.xAxisTickCount, 
-	            xAxisLabel: props.xAxisLabel, 
-	            xAxisLabelOffset: props.xAxisLabelOffset, 
-	            tickFormatting: props.xAxisFormatter, 
-	            xOrient: props.xOrient, 
-	            yOrient: props.yOrient, 
-	            margins: props.margins, 
-	            width: innerWidth, 
-	            height: innerHeight, 
-	            gridVertical: props.gridVertical, 
-	            gridVerticalStroke: props.gridVerticalStroke, 
-	            gridVerticalStrokeWidth: props.gridVerticalStrokeWidth, 
-	            gridVerticalStrokeDash: props.gridVerticalStrokeDash}
-	          ), 
-	          React.createElement(YAxis, {
-	            yAxisClassName: "rd3-areachart-yaxis", 
-	            yScale: yScale, 
-	            yAxisTickValues: props.yAxisTickValues, 
-	            yAxisTickInterval: props.yAxisTickInterval, 
-	            yAxisTickCount: props.yAxisTickCount, 
-	            yAxisLabel: props.yAxisLabel, 
-	            yAxisLabelOffset: props.yAxisLabelOffset, 
-	            tickFormatting: props.yAxisFormatter, 
-	            xOrient: props.xOrient, 
-	            yOrient: props.yOrient, 
-	            margins: props.margins, 
-	            width: innerWidth, 
-	            height: props.height, 
-	            gridHorizontal: props.gridHorizontal, 
-	            gridHorizontalStroke: props.gridHorizontalStroke, 
-	            gridHorizontalStrokeWidth: props.gridHorizontalStrokeWidth, 
-	            gridHorizontalStrokeDash: props.gridHorizontalStrokeDash}
-	          ), 
-	          dataSeries
-	        )
+	      },
+	      React.createElement(
+	        'g',
+	        { transform: trans, className: props.className },
+	        React.createElement(XAxis, {
+	          xAxisClassName: 'rd3-areachart-xaxis',
+	          xScale: xScale,
+	          xAxisTickValues: props.xAxisTickValues,
+	          xAxisTickInterval: props.xAxisTickInterval,
+	          xAxisTickCount: props.xAxisTickCount,
+	          xAxisLabel: props.xAxisLabel,
+	          xAxisLabelOffset: props.xAxisLabelOffset,
+	          tickFormatting: props.xAxisFormatter,
+	          tickStroke: props.xAxisTickStroke,
+	          tickTextStroke: props.xAxisTickTextStroke,
+	          xOrient: props.xOrient,
+	          yOrient: yOrient,
+	          margins: svgMargins,
+	          width: innerWidth,
+	          height: innerHeight,
+	          horizontalChart: props.horizontal,
+	          gridVertical: props.gridVertical,
+	          gridVerticalStroke: props.gridVerticalStroke,
+	          gridVerticalStrokeWidth: props.gridVerticalStrokeWidth,
+	          gridVerticalStrokeDash: props.gridVerticalStrokeDash
+	        }),
+	        React.createElement(YAxis, {
+	          yAxisClassName: 'rd3-areachart-yaxis',
+	          yScale: yScale,
+	          yAxisTickValues: props.yAxisTickValues,
+	          yAxisTickInterval: props.yAxisTickInterval,
+	          yAxisTickCount: props.yAxisTickCount,
+	          yAxisLabel: props.yAxisLabel,
+	          yAxisLabelOffset: props.yAxisLabelOffset,
+	          tickFormatting: props.yAxisFormatter,
+	          tickStroke: props.yAxisTickStroke,
+	          tickTextStroke: props.yAxisTickTextStroke,
+	          xOrient: props.xOrient,
+	          yOrient: yOrient,
+	          margins: svgMargins,
+	          width: innerWidth,
+	          height: props.height,
+	          horizontalChart: props.horizontal,
+	          gridHorizontal: props.gridHorizontal,
+	          gridHorizontalStroke: props.gridHorizontalStroke,
+	          gridHorizontalStrokeWidth: props.gridHorizontalStrokeWidth,
+	          gridHorizontalStrokeDash: props.gridHorizontalStrokeDash
+	        }),
+	        dataSeries
 	      )
 	    );
 	  }
-	
 	});
 
-
 /***/ },
-/* 432 */
-/*!********************************************!*\
-  !*** ./~/react-d3/areachart/DataSeries.js ***!
-  \********************************************/
+/* 436 */
+/*!*************************************************!*\
+  !*** ./~/rd3/build/cjs/areachart/DataSeries.js ***!
+  \*************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
 	var d3 = __webpack_require__(/*! d3 */ 398);
-	var AreaContainer = __webpack_require__(/*! ./AreaContainer */ 433);
+	var AreaContainer = __webpack_require__(/*! ./AreaContainer */ 437);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'DataSeries',
 	
 	  propTypes: {
-	    fill:              React.PropTypes.string,
+	    fill: React.PropTypes.string,
 	    interpolationType: React.PropTypes.string
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      interpolationType: 'linear'
 	    };
 	  },
-	
-	  render:function() {
-	
+	  render: function render() {
 	    var props = this.props;
 	
-	    var area = d3.svg.area()
-	      .x(function(d) { return props.xScale(props.xAccessor(d)); })
-	      .y0(function(d) { return props.yScale(d.y0); })
-	      .y1(function(d) { return props.yScale(d.y0 + props.yAccessor(d)); })
-	      .interpolate(props.interpolationType);
+	    var area = d3.svg.area().x(function (d) {
+	      return props.xScale(props.xAccessor(d));
+	    }).y0(function (d) {
+	      return props.yScale(d.y0);
+	    }).y1(function (d) {
+	      return props.yScale(d.y0 + props.yAccessor(d));
+	    }).interpolate(props.interpolationType);
 	
 	    var path = area(props.data);
 	
-	    return (
-	      React.createElement(AreaContainer, {
-	        fill: props.fill, 
-	        hoverAnimation: props.hoverAnimation, 
-	        path: path}
-	      )
-	    );
+	    return React.createElement(AreaContainer, {
+	      fill: props.fill,
+	      hoverAnimation: props.hoverAnimation,
+	      path: path
+	    });
 	  }
-	
 	});
 
-
 /***/ },
-/* 433 */
-/*!***********************************************!*\
-  !*** ./~/react-d3/areachart/AreaContainer.js ***!
-  \***********************************************/
+/* 437 */
+/*!****************************************************!*\
+  !*** ./~/rd3/build/cjs/areachart/AreaContainer.js ***!
+  \****************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
 	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
 	var shade = __webpack_require__(/*! ../utils */ 402).shade;
-	var Area = __webpack_require__(/*! ./Area */ 434);
+	var Area = __webpack_require__(/*! ./Area */ 438);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'AreaContainer',
 	
 	  propTypes: {
-	    fill: React.PropTypes.string, 
+	    fill: React.PropTypes.string
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      fill: '#3182bd'
 	    };
 	  },
-	
-	  getInitialState:function() {
-	    return { 
+	  getInitialState: function getInitialState() {
+	    return {
 	      fill: this.props.fill
 	    };
 	  },
-	
-	  render:function() {
-	
+	  _animateArea: function _animateArea() {
+	    this.setState({
+	      fill: shade(this.props.fill, 0.02)
+	    });
+	  },
+	  _restoreArea: function _restoreArea() {
+	    this.setState({
+	      fill: this.props.fill
+	    });
+	  },
+	  render: function render() {
 	    var props = this.props;
 	
 	    // animation controller
-	    var handleMouseOver, handleMouseLeave;
-	    if(props.hoverAnimation) {
+	    var handleMouseOver = void 0;
+	    var handleMouseLeave = void 0;
+	    if (props.hoverAnimation) {
 	      handleMouseOver = this._animateArea;
 	      handleMouseLeave = this._restoreArea;
 	    } else {
 	      handleMouseOver = handleMouseLeave = null;
 	    }
 	
-	    return (
-	      React.createElement(Area, React.__spread({
-	          handleMouseOver: handleMouseOver, 
-	          handleMouseLeave: handleMouseLeave}, 
-	          props, 
-	          {fill: this.state.fill})
-	      )
-	    );
-	  },
-	
-	  _animateArea:function() {
-	    this.setState({ 
-	      fill: shade(this.props.fill, 0.02)
-	    });
-	  },
-	
-	  _restoreArea:function() {
-	    this.setState({ 
-	      fill: this.props.fill
-	    });
-	  },
-	
+	    return React.createElement(Area, _extends({
+	      handleMouseOver: handleMouseOver,
+	      handleMouseLeave: handleMouseLeave
+	    }, props, {
+	      fill: this.state.fill
+	    }));
+	  }
 	});
 
-
 /***/ },
-/* 434 */
-/*!**************************************!*\
-  !*** ./~/react-d3/areachart/Area.js ***!
-  \**************************************/
+/* 438 */
+/*!*******************************************!*\
+  !*** ./~/rd3/build/cjs/areachart/Area.js ***!
+  \*******************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -48179,47 +48681,43 @@
 	
 	  propTypes: {
 	    path: React.PropTypes.string,
-	    fill: React.PropTypes.string
+	    fill: React.PropTypes.string,
+	    handleMouseOver: React.PropTypes.func,
+	    handleMouseLeave: React.PropTypes.func
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      fill: '#3182bd'
 	    };
 	  },
-	
-	  render:function() {
-	
-	    return (
-	      React.createElement("path", {
-	        className: "rd3-areachart-area", 
-	        d: this.props.path, 
-	        fill: this.props.fill, 
-	        onMouseOver: this.props.handleMouseOver, 
-	        onMouseLeave: this.props.handleMouseLeave}
-	      )
-	    );
+	  render: function render() {
+	    return React.createElement('path', {
+	      className: 'rd3-areachart-area',
+	      d: this.props.path,
+	      fill: this.props.fill,
+	      onMouseOver: this.props.handleMouseOver,
+	      onMouseLeave: this.props.handleMouseLeave
+	    });
 	  }
-	
 	});
 
-
 /***/ },
-/* 435 */
-/*!*************************************!*\
-  !*** ./~/react-d3/treemap/index.js ***!
-  \*************************************/
+/* 439 */
+/*!******************************************!*\
+  !*** ./~/rd3/build/cjs/treemap/index.js ***!
+  \******************************************/
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	
-	exports.Treemap = __webpack_require__(/*! ./Treemap */ 436);
-
+	exports.Treemap = __webpack_require__(/*! ./Treemap */ 440);
 
 /***/ },
-/* 436 */
-/*!***************************************!*\
-  !*** ./~/react-d3/treemap/Treemap.js ***!
-  \***************************************/
+/* 440 */
+/*!********************************************!*\
+  !*** ./~/rd3/build/cjs/treemap/Treemap.js ***!
+  \********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -48227,216 +48725,202 @@
 	var d3 = __webpack_require__(/*! d3 */ 398);
 	var React = __webpack_require__(/*! react */ 2);
 	var Chart = __webpack_require__(/*! ../common */ 403).Chart;
-	var DataSeries = __webpack_require__(/*! ./DataSeries */ 437);
+	var DataSeries = __webpack_require__(/*! ./DataSeries */ 441);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'Treemap',
 	
 	  propTypes: {
-	    data:           React.PropTypes.array,
-	    margins:        React.PropTypes.object,
-	    width:          React.PropTypes.number,
-	    height:         React.PropTypes.number,
-	    title:          React.PropTypes.string,
-	    textColor:      React.PropTypes.string,
-	    fontSize:       React.PropTypes.oneOfType([
-	                      React.PropTypes.string,
-	                      React.PropTypes.number
-	                    ]),
-	    colors:         React.PropTypes.func,
-	    colorAccessor:  React.PropTypes.func,
+	    data: React.PropTypes.array,
+	    margins: React.PropTypes.object,
+	    width: React.PropTypes.number,
+	    height: React.PropTypes.number,
+	    title: React.PropTypes.string,
+	    textColor: React.PropTypes.string,
+	    fontSize: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number]),
+	    colors: React.PropTypes.func,
+	    colorAccessor: React.PropTypes.func,
 	    hoverAnimation: React.PropTypes.bool
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      hoverAnimation: true,
-	      data:           [],
-	      width:          400,
-	      heigth:         200,
-	      title:          '',
-	      textColor:      '#f7f7f7',
-	      fontSize:       '0.85em',
-	      colors:         d3.scale.category20c(),
-	      colorAccessor:  function(d, idx)  {return idx;},
+	      data: [],
+	      width: 400,
+	      heigth: 200,
+	      title: '',
+	      textColor: '#f7f7f7',
+	      fontSize: '0.85em',
+	      colors: d3.scale.category20c(),
+	      colorAccessor: function colorAccessor(d, idx) {
+	        return idx;
+	      }
 	    };
 	  },
-	
-	  render:function() {
-	
+	  render: function render() {
 	    var props = this.props;
+	    if (this.props.data && this.props.data.length < 1) {
+	      return null;
+	    }
 	
-	    return (
-	      React.createElement(Chart, {
-	        title: props.title, 
-	        width: props.width, 
+	    return React.createElement(
+	      Chart,
+	      {
+	        title: props.title,
+	        width: props.width,
 	        height: props.height
-	      }, 
-	        React.createElement("g", {className: "rd3-treemap"}, 
-	          React.createElement(DataSeries, {
-	            data: props.data, 
-	            width: props.width, 
-	            height: props.height, 
-	            colors: props.colors, 
-	            colorAccessor: props.colorAccessor, 
-	            textColor: props.textColor, 
-	            fontSize: props.fontSize, 
-	            hoverAnimation: props.hoverAnimation}
-	          )
-	        )
+	      },
+	      React.createElement(
+	        'g',
+	        { className: 'rd3-treemap' },
+	        React.createElement(DataSeries, {
+	          data: props.data,
+	          width: props.width,
+	          height: props.height,
+	          colors: props.colors,
+	          colorAccessor: props.colorAccessor,
+	          textColor: props.textColor,
+	          fontSize: props.fontSize,
+	          hoverAnimation: props.hoverAnimation
+	        })
 	      )
 	    );
 	  }
-	
 	});
 
-
 /***/ },
-/* 437 */
-/*!******************************************!*\
-  !*** ./~/react-d3/treemap/DataSeries.js ***!
-  \******************************************/
+/* 441 */
+/*!***********************************************!*\
+  !*** ./~/rd3/build/cjs/treemap/DataSeries.js ***!
+  \***********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
 	var d3 = __webpack_require__(/*! d3 */ 398);
-	var CellContainer = __webpack_require__(/*! ./CellContainer */ 438);
-	
+	var CellContainer = __webpack_require__(/*! ./CellContainer */ 442);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'DataSeries',
 	
 	  propTypes: {
-	    data:          React.PropTypes.array,
-	    colors:        React.PropTypes.func,
+	    data: React.PropTypes.array,
+	    colors: React.PropTypes.func,
 	    colorAccessor: React.PropTypes.func,
-	    width:         React.PropTypes.number,
-	    height:        React.PropTypes.number
+	    width: React.PropTypes.number,
+	    height: React.PropTypes.number
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      data:          [],
-	      colors:        d3.scale.category20c(),
-	      colorAccessor: function(d, idx)  {return idx;}
+	      data: [],
+	      colors: d3.scale.category20c(),
+	      colorAccessor: function colorAccessor(d, idx) {
+	        return idx;
+	      }
 	    };
 	  },
-	
-	  render:function() {
-	
+	  render: function render() {
 	    var props = this.props;
 	
 	    var treemap = d3.layout.treemap()
-	                    // make sure calculation loop through all objects inside array
-	                    .children( function(d)  {return d;})
-	                    .size([props.width, props.height])
-	                    .sticky(true)
-	                    .value( function(d)  { return d.value; });
+	    // make sure calculation loop through all objects inside array
+	    .children(function (d) {
+	      return d;
+	    }).size([props.width, props.height]).sticky(true).value(function (d) {
+	      return d.value;
+	    });
 	
 	    var tree = treemap(props.data);
 	
-	    var cells = tree.map( function(node, idx)  {
-	      return (
-	        React.createElement(CellContainer, {
-	          key: idx, 
-	          x: node.x, 
-	          y: node.y, 
-	          width: node.dx, 
-	          height: node.dy, 
-	          fill: props.colors(props.colorAccessor(node, idx)), 
-	          label: node.label, 
-	          fontSize: props.fontSize, 
-	          textColor: props.textColor, 
-	          hoverAnimation: props.hoverAnimation}
-	        )
-	      );
+	    var cells = tree.map(function (node, idx) {
+	      return React.createElement(CellContainer, {
+	        key: idx,
+	        x: node.x,
+	        y: node.y,
+	        width: node.dx,
+	        height: node.dy,
+	        fill: props.colors(props.colorAccessor(node, idx)),
+	        label: node.label,
+	        fontSize: props.fontSize,
+	        textColor: props.textColor,
+	        hoverAnimation: props.hoverAnimation
+	      });
 	    }, this);
 	
-	    return (
-	      React.createElement("g", {transform: props.transform, className: "treemap"}, 
-	        cells
-	      )
+	    return React.createElement(
+	      'g',
+	      { transform: props.transform, className: 'treemap' },
+	      cells
 	    );
 	  }
-	
 	});
 
-
 /***/ },
-/* 438 */
-/*!*********************************************!*\
-  !*** ./~/react-d3/treemap/CellContainer.js ***!
-  \*********************************************/
+/* 442 */
+/*!**************************************************!*\
+  !*** ./~/rd3/build/cjs/treemap/CellContainer.js ***!
+  \**************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
 	var React = __webpack_require__(/*! react */ 2);
 	var shade = __webpack_require__(/*! ../utils */ 402).shade;
-	var Cell = __webpack_require__(/*! ./Cell */ 439);
-	
+	var Cell = __webpack_require__(/*! ./Cell */ 443);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'CellContainer',
 	
 	  propTypes: {
-	    fill: React.PropTypes.string,
+	    fill: React.PropTypes.string
 	  },
 	
-	  getInitialState:function() {
+	  getInitialState: function getInitialState() {
 	    return {
 	      // fill is named as fill instead of initialFill to avoid
 	      // confusion when passing down props from top parent
 	      fill: this.props.fill
 	    };
 	  },
-	
-	
-	  render:function() {
-	
-	    var props = this.props;
-	
-	    return (
-	      React.createElement(Cell, React.__spread({},  
-	        props, 
-	        {fill: this.state.fill, 
-	        handleMouseOver: props.hoverAnimation ? this._animateCell : null, 
-	        handleMouseLeave: props.hoverAnimation ? this._restoreCell : null})
-	      )
-	    );
-	  },
-	
-	  _animateCell:function() {
+	  _animateCell: function _animateCell() {
 	    this.setState({
 	      fill: shade(this.props.fill, 0.05)
 	    });
 	  },
-	
-	  _restoreCell:function() {
+	  _restoreCell: function _restoreCell() {
 	    this.setState({
 	      fill: this.props.fill
 	    });
+	  },
+	  render: function render() {
+	    var props = this.props;
+	
+	    return React.createElement(Cell, _extends({}, props, {
+	      fill: this.state.fill,
+	      handleMouseOver: props.hoverAnimation ? this._animateCell : null,
+	      handleMouseLeave: props.hoverAnimation ? this._restoreCell : null
+	    }));
 	  }
 	});
 
-
 /***/ },
-/* 439 */
-/*!************************************!*\
-  !*** ./~/react-d3/treemap/Cell.js ***!
-  \************************************/
+/* 443 */
+/*!*****************************************!*\
+  !*** ./~/rd3/build/cjs/treemap/Cell.js ***!
+  \*****************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
-	
 	
 	module.exports = React.createClass({
 	
@@ -48449,260 +48933,289 @@
 	    label: React.PropTypes.string
 	  },
 	
-	  render:function() {
-	
+	  render: function render() {
 	    var props = this.props;
-	    
+	
 	    var textStyle = {
-	      'textAnchor': 'middle',
-	      'fill': props.textColor,
-	      'fontSize': props.fontSize
+	      textAnchor: 'middle',
+	      fill: props.textColor,
+	      fontSize: props.fontSize
 	    };
 	
-	    var t = ("translate(" + props.x + ", " + props.y + "  )");
+	    var t = 'translate(' + props.x + ', ' + props.y + '  )';
 	
-	    return (
-	      React.createElement("g", {transform: t}, 
-	        React.createElement("rect", {
-	          className: "rd3-treemap-cell", 
-	          width: props.width, 
-	          height: props.height, 
-	          fill: props.fill, 
-	          onMouseOver: props.handleMouseOver, 
-	          onMouseLeave: props.handleMouseLeave}
-	        ), 
-	        React.createElement("text", {
-	          x: props.width / 2, 
-	          y: props.height / 2, 
-	          dy: ".35em", 
-	          style: textStyle, 
-	          className: "rd3-treemap-cell-text"
-	        }, 
-	          props.label
-	        )
+	    return React.createElement(
+	      'g',
+	      { transform: t },
+	      React.createElement('rect', {
+	        className: 'rd3-treemap-cell',
+	        width: props.width,
+	        height: props.height,
+	        fill: props.fill,
+	        onMouseOver: props.handleMouseOver,
+	        onMouseLeave: props.handleMouseLeave
+	      }),
+	      React.createElement(
+	        'text',
+	        {
+	          x: props.width / 2,
+	          y: props.height / 2,
+	          dy: '.35em',
+	          style: textStyle,
+	          className: 'rd3-treemap-cell-text'
+	        },
+	        props.label
 	      )
 	    );
 	  }
 	});
 
-
 /***/ },
-/* 440 */
-/*!******************************************!*\
-  !*** ./~/react-d3/scatterchart/index.js ***!
-  \******************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	
-	exports.ScatterChart = __webpack_require__(/*! ./ScatterChart */ 441);
-
-
-/***/ },
-/* 441 */
-/*!*************************************************!*\
-  !*** ./~/react-d3/scatterchart/ScatterChart.js ***!
-  \*************************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
-	var $__0=      __webpack_require__(/*! ../common */ 403),Chart=$__0.Chart,XAxis=$__0.XAxis,YAxis=$__0.YAxis;
-	var DataSeries = __webpack_require__(/*! ./DataSeries */ 442);
-	var utils = __webpack_require__(/*! ../utils */ 402);
-	var $__1=     __webpack_require__(/*! ../mixins */ 412),CartesianChartPropsMixin=$__1.CartesianChartPropsMixin,ViewBoxMixin=$__1.ViewBoxMixin;
-	
-	module.exports = React.createClass({
-	
-	  mixins: [ CartesianChartPropsMixin, ViewBoxMixin ],
-	
-	  displayName: 'ScatterChart',
-	
-	  propTypes: {
-	    circleRadius:     React.PropTypes.number,
-	    className:        React.PropTypes.string,
-	    hoverAnimation:   React.PropTypes.bool,
-	    margins:          React.PropTypes.object,
-	    xAxisClassName:   React.PropTypes.string,
-	    xAxisStrokeWidth: React.PropTypes.number,
-	    yAxisClassName:   React.PropTypes.string,
-	    yAxisStrokeWidth: React.PropTypes.number
-	 },
-	
-	  getDefaultProps:function() {
-	    return {
-	      circleRadius:     3,
-	      className:        'rd3-scatterchart',
-	      hoverAnimation:   true,
-	      margins:          {top: 10, right: 20, bottom: 50, left: 45},
-	      xAxisClassName:   'rd3-scatterchart-xaxis',
-	      xAxisStrokeWidth: 1,
-	      yAxisClassName:   'rd3-scatterchart-yaxis',
-	      yAxisStrokeWidth: 1
-	    };
-	  },
-	
-	  _calculateScales: utils.calculateScales,
-	
-	  render:function() {
-	
-	    var props = this.props;
-	    var data  = props.data;
-	    var margins = props.margins;
-	
-	    if (!data || data.length < 1) {
-	      return null;
-	    }
-	
-	    // Calculate inner chart dimensions
-	    var innerWidth  = this.getOuterDimensions().width - margins.left - margins.right;
-	    var innerHeight = this.getOuterDimensions().height - margins.top - margins.bottom;
-	
-	    // Returns an object of flattened allValues, xValues, and yValues
-	    var flattenedData = utils.flattenData(data, props.xAccessor, props.yAccessor);
-	
-	    var allValues = flattenedData.allValues,
-	        xValues   = flattenedData.xValues,
-	        yValues   = flattenedData.yValues;
-	
-	    var scales  = this._calculateScales(innerWidth, innerHeight, xValues, yValues);
-	    var xScale  = scales.xScale;
-	    var yScale  = scales.yScale;
-	
-	    var x = props.yAxisOffset < 0 ? (margins.left + Math.abs(props.yAxisOffset)) : margins.left;
-	    var transform = ("translate(" + x + ", " + margins.top + ")");
-	
-	    return (
-	      React.createElement(Chart, {
-	        colors: props.colors, 
-	        colorAccessor: props.colorAccessor, 
-	        data: data, 
-	        height: props.height, 
-	        legend: props.legend, 
-	        margins: margins, 
-	        title: props.title, 
-	        viewBox: this.getViewBox(), 
-	        width: props.width
-	      }, 
-	        React.createElement("g", {
-	          className: props.className, 
-	          transform: transform
-	        }, 
-	          React.createElement(XAxis, {
-	            data: data, 
-	            height: innerHeight, 
-	            margins: margins, 
-	            stroke: props.axesColor, 
-	            strokeWidth: props.xAxisStrokeWidth.toString(), 
-	            tickFormatting: props.xAxisFormatter, 
-	            width: innerWidth, 
-	            xAxisClassName: props.xAxisClassName, 
-	            xAxisLabel: props.xAxisLabel, 
-	            xAxisLabelOffset: props.xAxisLabelOffset, 
-	            xAxisOffset: props.xAxisOffset, 
-	            xAxisTickInterval: props.xAxisTickInterval, 
-	            xAxisTickValues: props.xAxisTickValues, 
-	            xOrient: props.xOrient, 
-	            yOrient: props.yOrient, 
-	            xScale: xScale, 
-	            gridVertical: props.gridVertical, 
-	            gridVerticalStroke: props.gridVerticalStroke, 
-	            gridVerticalStrokeWidth: props.gridVerticalStrokeWidth, 
-	            gridVerticalStrokeDash: props.gridVerticalStrokeDash}
-	          ), 
-	          React.createElement(YAxis, {
-	            data: data, 
-	            width: innerWidth, 
-	            height: innerHeight, 
-	            margins: margins, 
-	            stroke: props.axesColor, 
-	            strokeWidth: props.yAxisStrokeWidth.toString(), 
-	            tickFormatting: props.yAxisFormatter, 
-	            yAxisClassName: props.yAxisClassName, 
-	            yAxisLabel: props.yAxisLabel, 
-	            yAxisLabelOffset: props.yAxisLabelOffset, 
-	            yAxisOffset: props.yAxisOffset, 
-	            yAxisTickValues: props.yAxisTickValues, 
-	            yAxisTickCount: props.yAxisTickCount, 
-	            yScale: yScale, 
-	            xOrient: props.xOrient, 
-	            yOrient: props.yOrient, 
-	            gridHorizontal: props.gridHorizontal, 
-	            gridHorizontalStroke: props.gridHorizontalStroke, 
-	            gridHorizontalStrokeWidth: props.gridHorizontalStrokeWidth, 
-	            gridHorizontalStrokeDash: props.gridHorizontalStrokeDash}
-	          ), 
-	          React.createElement(DataSeries, {
-	            circleRadius: props.circleRadius, 
-	            colors: props.colors, 
-	            colorAccessor: props.colorAccessor, 
-	            data: allValues, 
-	            height: innerHeight, 
-	            hoverAnimation: props.hoverAnimation, 
-	            width: innerWidth, 
-	            xAccessor: props.xAccessor, 
-	            xScale: xScale, 
-	            yAccessor: props.yAccessor, 
-	            yScale: yScale}
-	            )
-	        )
-	      )
-	    );
-	  }
-	
-	});
-
-
-/***/ },
-/* 442 */
+/* 444 */
 /*!***********************************************!*\
-  !*** ./~/react-d3/scatterchart/DataSeries.js ***!
+  !*** ./~/rd3/build/cjs/scatterchart/index.js ***!
   \***********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
+	exports.ScatterChart = __webpack_require__(/*! ./ScatterChart */ 445);
+
+/***/ },
+/* 445 */
+/*!******************************************************!*\
+  !*** ./~/rd3/build/cjs/scatterchart/ScatterChart.js ***!
+  \******************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var React = __webpack_require__(/*! react */ 2);
+	
+	var _require = __webpack_require__(/*! ../common */ 403);
+	
+	var Chart = _require.Chart;
+	var XAxis = _require.XAxis;
+	var YAxis = _require.YAxis;
+	var Tooltip = _require.Tooltip;
+	
+	var DataSeries = __webpack_require__(/*! ./DataSeries */ 446);
+	var utils = __webpack_require__(/*! ../utils */ 402);
+	
+	var _require2 = __webpack_require__(/*! ../mixins */ 418);
+	
+	var CartesianChartPropsMixin = _require2.CartesianChartPropsMixin;
+	var DefaultAccessorsMixin = _require2.DefaultAccessorsMixin;
+	var ViewBoxMixin = _require2.ViewBoxMixin;
+	var TooltipMixin = _require2.TooltipMixin;
+	
+	
+	module.exports = React.createClass({
+	
+	  displayName: 'ScatterChart',
+	
+	  propTypes: {
+	    circleRadius: React.PropTypes.number,
+	    className: React.PropTypes.string,
+	    hoverAnimation: React.PropTypes.bool,
+	    margins: React.PropTypes.object,
+	    xAxisClassName: React.PropTypes.string,
+	    xAxisStrokeWidth: React.PropTypes.number,
+	    yAxisClassName: React.PropTypes.string,
+	    yAxisStrokeWidth: React.PropTypes.number
+	  },
+	
+	  mixins: [CartesianChartPropsMixin, DefaultAccessorsMixin, ViewBoxMixin, TooltipMixin],
+	
+	  getDefaultProps: function getDefaultProps() {
+	    return {
+	      circleRadius: 3,
+	      className: 'rd3-scatterchart',
+	      hoverAnimation: true,
+	      margins: { top: 10, right: 20, bottom: 50, left: 45 },
+	      xAxisClassName: 'rd3-scatterchart-xaxis',
+	      xAxisStrokeWidth: 1,
+	      yAxisClassName: 'rd3-scatterchart-yaxis',
+	      yAxisStrokeWidth: 1
+	    };
+	  },
+	
+	
+	  _calculateScales: utils.calculateScales,
+	
+	  render: function render() {
+	    var props = this.props;
+	    var data = props.data;
+	
+	    if (!data || data.length < 1) {
+	      return null;
+	    }
+	
+	    var _getDimensions = this.getDimensions();
+	
+	    var innerWidth = _getDimensions.innerWidth;
+	    var innerHeight = _getDimensions.innerHeight;
+	    var trans = _getDimensions.trans;
+	    var svgMargins = _getDimensions.svgMargins;
+	
+	    var yOrient = this.getYOrient();
+	    var domain = props.domain || {};
+	
+	    // Returns an object of flattened allValues, xValues, and yValues
+	    var flattenedData = utils.flattenData(data, props.xAccessor, props.yAccessor);
+	
+	    var allValues = flattenedData.allValues;
+	    var xValues = flattenedData.xValues;
+	    var yValues = flattenedData.yValues;
+	
+	    var scales = this._calculateScales(innerWidth, innerHeight, xValues, yValues, domain.x, domain.y);
+	    var xScale = scales.xScale;
+	    var yScale = scales.yScale;
+	
+	    return React.createElement(
+	      'span',
+	      { onMouseLeave: this.onMouseLeave },
+	      React.createElement(
+	        Chart,
+	        {
+	          colors: props.colors,
+	          colorAccessor: props.colorAccessor,
+	          data: data,
+	          height: props.height,
+	          legend: props.legend,
+	          sideOffset: props.sideOffset,
+	          margins: props.margins,
+	          title: props.title,
+	          viewBox: this.getViewBox(),
+	          width: props.width,
+	          shouldUpdate: !this.state.changeState
+	        },
+	        React.createElement(
+	          'g',
+	          {
+	            className: props.className,
+	            transform: trans
+	          },
+	          React.createElement(XAxis, {
+	            data: data,
+	            height: innerHeight,
+	            horizontalChart: props.horizontal,
+	            margins: svgMargins,
+	            stroke: props.axesColor,
+	            strokeWidth: props.xAxisStrokeWidth.toString(),
+	            tickFormatting: props.xAxisFormatter,
+	            tickStroke: props.xAxisTickStroke,
+	            tickTextStroke: props.xAxisTickTextStroke,
+	            width: innerWidth,
+	            xAxisClassName: props.xAxisClassName,
+	            xAxisLabel: props.xAxisLabel,
+	            xAxisLabelOffset: props.xAxisLabelOffset,
+	            xAxisOffset: props.xAxisOffset,
+	            xAxisTickInterval: props.xAxisTickInterval,
+	            xAxisTickValues: props.xAxisTickValues,
+	            xOrient: props.xOrient,
+	            yOrient: yOrient,
+	            xScale: xScale,
+	            gridVertical: props.gridVertical,
+	            gridVerticalStroke: props.gridVerticalStroke,
+	            gridVerticalStrokeWidth: props.gridVerticalStrokeWidth,
+	            gridVerticalStrokeDash: props.gridVerticalStrokeDash
+	          }),
+	          React.createElement(YAxis, {
+	            data: data,
+	            width: innerWidth,
+	            height: innerHeight,
+	            horizontalChart: props.horizontal,
+	            margins: svgMargins,
+	            stroke: props.axesColor,
+	            strokeWidth: props.yAxisStrokeWidth.toString(),
+	            tickFormatting: props.yAxisFormatter,
+	            tickStroke: props.yAxisTickStroke,
+	            tickTextStroke: props.yAxisTickTextStroke,
+	            yAxisClassName: props.yAxisClassName,
+	            yAxisLabel: props.yAxisLabel,
+	            yAxisLabelOffset: props.yAxisLabelOffset,
+	            yAxisOffset: props.yAxisOffset,
+	            yAxisTickValues: props.yAxisTickValues,
+	            yAxisTickCount: props.yAxisTickCount,
+	            yScale: yScale,
+	            xOrient: props.xOrient,
+	            yOrient: yOrient,
+	            gridHorizontal: props.gridHorizontal,
+	            gridHorizontalStroke: props.gridHorizontalStroke,
+	            gridHorizontalStrokeWidth: props.gridHorizontalStrokeWidth,
+	            gridHorizontalStrokeDash: props.gridHorizontalStrokeDash
+	          }),
+	          React.createElement(DataSeries, {
+	            circleRadius: props.circleRadius,
+	            colors: props.colors,
+	            colorAccessor: props.colorAccessor,
+	            data: allValues,
+	            height: innerHeight,
+	            hoverAnimation: props.hoverAnimation,
+	            width: innerWidth,
+	            xAccessor: props.xAccessor,
+	            xScale: xScale,
+	            yAccessor: props.yAccessor,
+	            yScale: yScale,
+	            onMouseOver: this.onMouseOver
+	          })
+	        )
+	      ),
+	      props.showTooltip ? React.createElement(Tooltip, this.state.tooltip) : null
+	    );
+	  }
+	});
+
+/***/ },
+/* 446 */
+/*!****************************************************!*\
+  !*** ./~/rd3/build/cjs/scatterchart/DataSeries.js ***!
+  \****************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
 	var React = __webpack_require__(/*! react */ 2);
 	var d3 = __webpack_require__(/*! d3 */ 398);
-	var VoronoiCircleContainer = __webpack_require__(/*! ./VoronoiCircleContainer */ 443);
+	var VoronoiCircleContainer = __webpack_require__(/*! ./VoronoiCircleContainer */ 447);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'DataSeries',
 	
 	  propTypes: {
-	    circleRadius:  React.PropTypes.number.isRequired,
-	    className:     React.PropTypes.string,
-	    colors:        React.PropTypes.func.isRequired,
+	    circleRadius: React.PropTypes.number.isRequired,
+	    className: React.PropTypes.string,
+	    colors: React.PropTypes.func.isRequired,
 	    colorAccessor: React.PropTypes.func.isRequired,
-	    data:          React.PropTypes.array.isRequired,
-	    height:        React.PropTypes.number.isRequired,
-	    xAccessor:     React.PropTypes.func.isRequired,
-	    xScale:        React.PropTypes.func.isRequired,
-	    yAccessor:     React.PropTypes.func.isRequired,
-	    yScale:        React.PropTypes.func.isRequired
+	    data: React.PropTypes.array.isRequired,
+	    height: React.PropTypes.number.isRequired,
+	    xAccessor: React.PropTypes.func.isRequired,
+	    xScale: React.PropTypes.func.isRequired,
+	    yAccessor: React.PropTypes.func.isRequired,
+	    yScale: React.PropTypes.func.isRequired
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      className: 'rd3-scatterchart-dataseries'
 	    };
 	  },
-	
-	  render: function() {
-	    var props     = this.props;
-	    var xScale    = props.xScale;
-	    var yScale    = props.yScale;
+	  render: function render() {
+	    var props = this.props;
+	    var xScale = props.xScale;
+	    var yScale = props.yScale;
 	    var xAccessor = props.xAccessor;
 	    var yAccessor = props.yAccessor;
 	
-	    var voronoi = d3.geom.voronoi()
-	      .x(function(d){ return xScale(d.coord.x); })
-	      .y(function(d){ return yScale(d.coord.y); })
-	      .clipExtent([[0, 0], [ props.width , props.height]]);
+	    var voronoi = d3.geom.voronoi().x(function (d) {
+	      return xScale(d.coord.x);
+	    }).y(function (d) {
+	      return yScale(d.coord.y);
+	    }).clipExtent([[0, 0], [props.width, props.height]]);
 	
-	    var regions = voronoi(props.data).map(function(vnode, idx) {
+	    var regions = voronoi(props.data).map(function (vnode, idx) {
 	      var point = vnode.point;
 	      var coord = point.coord;
 	
@@ -48710,7 +49223,8 @@
 	      var y = yAccessor(coord);
 	
 	      // The circle coordinates
-	      var cx, cy;
+	      var cx = void 0;
+	      var cy = void 0;
 	
 	      if (Object.prototype.toString.call(x) === '[object Date]') {
 	        cx = xScale(x.getTime());
@@ -48724,214 +49238,201 @@
 	        cy = yScale(y);
 	      }
 	
-	      return (
-	        React.createElement(VoronoiCircleContainer, {
-	          key: idx, 
-	          circleFill: props.colors(props.colorAccessor(point.d, point.seriesIndex)), 
-	          circleRadius: props.circleRadius, 
-	          cx: cx, 
-	          cy: cy, 
-	          vnode: vnode}
-	        )
-	      );
+	      return React.createElement(VoronoiCircleContainer, {
+	        key: idx,
+	        circleFill: props.colors(props.colorAccessor(point.d, point.seriesIndex)),
+	        circleRadius: props.circleRadius,
+	        cx: cx,
+	        cy: cy,
+	        vnode: vnode,
+	        onMouseOver: props.onMouseOver,
+	        dataPoint: { xValue: x, yValue: y, seriesName: point.series.name }
+	      });
 	    });
 	
-	    return (
-	      React.createElement("g", {
+	    return React.createElement(
+	      'g',
+	      {
 	        className: props.className
-	      }, 
-	        regions
-	      )
+	      },
+	      regions
 	    );
 	  }
-	
 	});
 
-
 /***/ },
-/* 443 */
-/*!***********************************************************!*\
-  !*** ./~/react-d3/scatterchart/VoronoiCircleContainer.js ***!
-  \***********************************************************/
+/* 447 */
+/*!****************************************************************!*\
+  !*** ./~/rd3/build/cjs/scatterchart/VoronoiCircleContainer.js ***!
+  \****************************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
+	
+	var _require = __webpack_require__(/*! react-dom */ 35);
+	
+	var findDOMNode = _require.findDOMNode;
+	
 	var shade = __webpack_require__(/*! ../utils */ 402).shade;
-	var VoronoiCircle = __webpack_require__(/*! ./VoronoiCircle */ 444);
+	var VoronoiCircle = __webpack_require__(/*! ./VoronoiCircle */ 448);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'VornoiCircleContainer',
 	
 	  propTypes: {
-	    circleFill:             React.PropTypes.string,
-	    circleRadius:           React.PropTypes.number,
+	    circleFill: React.PropTypes.string,
+	    circleRadius: React.PropTypes.number,
 	    circleRadiusMultiplier: React.PropTypes.number,
-	    className:              React.PropTypes.string,
-	    hoverAnimation:         React.PropTypes.bool,
-	    shadeMultiplier:        React.PropTypes.number,
-	    vnode:                  React.PropTypes.array.isRequired
+	    className: React.PropTypes.string,
+	    hoverAnimation: React.PropTypes.bool,
+	    shadeMultiplier: React.PropTypes.number,
+	    vnode: React.PropTypes.array.isRequired,
+	    onMouseOver: React.PropTypes.func
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      circleFill:             '#1f77b4',
-	      circleRadius:           3,
+	      circleFill: '#1f77b4',
+	      circleRadius: 3,
 	      circleRadiusMultiplier: 1.25,
-	      className:              'rd3-scatterchart-voronoi-circle-container',
-	      hoverAnimation:         true,
-	      shadeMultiplier:        0.2
+	      className: 'rd3-scatterchart-voronoi-circle-container',
+	      hoverAnimation: true,
+	      shadeMultiplier: 0.2
 	    };
 	  },
-	
-	  getInitialState:function() {
+	  getInitialState: function getInitialState() {
 	    return {
-	      circleFill:   this.props.circleFill,
+	      circleFill: this.props.circleFill,
 	      circleRadius: this.props.circleRadius
 	    };
 	  },
-	
-	  componentWillReceiveProps:function(nextProps) {
-	    this.setState({
-	      circleFill:   nextProps.circleFill,
-	      circleRadius: nextProps.circleRadius
-	    });
-	  },
-	
-	  render:function() {
-	
-	    var props = this.props;
-	    var state = this.state;
-	
-	    return (
-	      React.createElement("g", {
-	        className: props.className
-	      }, 
-	        React.createElement(VoronoiCircle, {
-	          circleFill: state.circleFill, 
-	          circleRadius: state.circleRadius, 
-	          cx: props.cx, 
-	          cy: props.cy, 
-	          handleMouseLeave: this._restoreCircle, 
-	          handleMouseOver: this._animateCircle, 
-	          voronoiPath: this._drawPath(props.vnode)}
-	        )
-	      )
-	    );
-	  },
-	
-	  _animateCircle:function() {
+	  _animateCircle: function _animateCircle() {
 	    var props = this.props;
 	
-	    if(props.hoverAnimation) {
+	    if (props.hoverAnimation) {
+	      var rect = findDOMNode(this).getElementsByTagName('circle')[0].getBoundingClientRect();
+	      this.props.onMouseOver.call(this, rect.right, rect.top, props.dataPoint);
 	      this.setState({
-	        circleFill:   shade(props.circleFill, props.shadeMultiplier),
+	        circleFill: shade(props.circleFill, props.shadeMultiplier),
 	        circleRadius: props.circleRadius * props.circleRadiusMultiplier
 	      });
 	    }
 	  },
-	
-	  _restoreCircle:function() {
+	  _restoreCircle: function _restoreCircle() {
 	    var props = this.props;
-	
-	    if(props.hoverAnimation) {
+	    if (props.hoverAnimation) {
 	      this.setState({
-	        circleFill:   props.circleFill,
+	        circleFill: props.circleFill,
 	        circleRadius: props.circleRadius
 	      });
 	    }
 	  },
-	
-	  _drawPath: function(d) {
-	    if(typeof d === 'undefined') {
+	  _drawPath: function _drawPath(d) {
+	    if (typeof d === 'undefined') {
 	      return 'M Z';
 	    }
 	
 	    return 'M' + d.join(',') + 'Z';
 	  },
+	  render: function render() {
+	    var props = this.props;
+	    var state = this.state;
+	
+	    return React.createElement(
+	      'g',
+	      {
+	        className: props.className
+	      },
+	      React.createElement(VoronoiCircle, {
+	        circleFill: state.circleFill,
+	        circleRadius: state.circleRadius,
+	        cx: props.cx,
+	        cy: props.cy,
+	        handleMouseLeave: this._restoreCircle,
+	        handleMouseOver: this._animateCircle,
+	        voronoiPath: this._drawPath(props.vnode)
+	      })
+	    );
+	  }
 	});
 
-
 /***/ },
-/* 444 */
-/*!**************************************************!*\
-  !*** ./~/react-d3/scatterchart/VoronoiCircle.js ***!
-  \**************************************************/
+/* 448 */
+/*!*******************************************************!*\
+  !*** ./~/rd3/build/cjs/scatterchart/VoronoiCircle.js ***!
+  \*******************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'VoronoiCircle',
 	
 	  propTypes: {
-	    circleFill:       React.PropTypes.string.isRequired,
-	    circleRadius:     React.PropTypes.number.isRequired,
-	    className:        React.PropTypes.string,
-	    cx:               React.PropTypes.number.isRequired,
-	    cy:               React.PropTypes.number.isRequired,
+	    circleFill: React.PropTypes.string.isRequired,
+	    circleRadius: React.PropTypes.number.isRequired,
+	    className: React.PropTypes.string,
+	    cx: React.PropTypes.number.isRequired,
+	    cy: React.PropTypes.number.isRequired,
 	    handleMouseLeave: React.PropTypes.func.isRequired,
-	    handleMouseOver:  React.PropTypes.func.isRequired,
-	    pathFill:         React.PropTypes.string,
-	    voronoiPath:      React.PropTypes.string.isRequired
+	    handleMouseOver: React.PropTypes.func.isRequired,
+	    pathFill: React.PropTypes.string,
+	    voronoiPath: React.PropTypes.string.isRequired
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      className:    'rd3-scatterchart-voronoi-circle',
-	      pathFill:     'transparent'
+	      className: 'rd3-scatterchart-voronoi-circle',
+	      pathFill: 'transparent'
 	    };
 	  },
-	
-	  render:function() {
+	  render: function render() {
 	    var props = this.props;
 	
-	    return (
-	      React.createElement("g", null, 
-	        React.createElement("path", {
-	          d: props.voronoiPath, 
-	          fill: props.pathFill, 
-	          onMouseLeave: props.handleMouseLeave, 
-	          onMouseOver: props.handleMouseOver}
-	        ), 
-	        React.createElement("circle", {
-	          cx: props.cx, 
-	          cy: props.cy, 
-	          className: props.className, 
-	          fill: props.circleFill, 
-	          onMouseLeave: props.handleMouseLeave, 
-	          onMouseOver: props.handleMouseOver, 
-	          r: props.circleRadius}
-	        )
-	      )
+	    return React.createElement(
+	      'g',
+	      null,
+	      React.createElement('path', {
+	        d: props.voronoiPath,
+	        fill: props.pathFill,
+	        onMouseLeave: props.handleMouseLeave,
+	        onMouseOver: props.handleMouseOver
+	      }),
+	      React.createElement('circle', {
+	        cx: props.cx,
+	        cy: props.cy,
+	        className: props.className,
+	        fill: props.circleFill,
+	        onMouseLeave: props.handleMouseLeave,
+	        onMouseOver: props.handleMouseOver,
+	        r: props.circleRadius
+	      })
 	    );
-	  },
+	  }
 	});
 
-
 /***/ },
-/* 445 */
-/*!*****************************************!*\
-  !*** ./~/react-d3/candlestick/index.js ***!
-  \*****************************************/
+/* 449 */
+/*!**********************************************!*\
+  !*** ./~/rd3/build/cjs/candlestick/index.js ***!
+  \**********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	
-	exports.CandlestickChart = __webpack_require__(/*! ./CandlestickChart */ 446);
-
+	exports.CandlestickChart = __webpack_require__(/*! ./CandlestickChart */ 450);
 
 /***/ },
-/* 446 */
-/*!****************************************************!*\
-  !*** ./~/react-d3/candlestick/CandlestickChart.js ***!
-  \****************************************************/
+/* 450 */
+/*!*********************************************************!*\
+  !*** ./~/rd3/build/cjs/candlestick/CandlestickChart.js ***!
+  \*********************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -48939,330 +49440,331 @@
 	var React = __webpack_require__(/*! react */ 2);
 	var d3 = __webpack_require__(/*! d3 */ 398);
 	var utils = __webpack_require__(/*! ../utils */ 402);
-	var DataSeries = __webpack_require__(/*! ./DataSeries */ 447);
-	var $__0=      __webpack_require__(/*! ../common */ 403),Chart=$__0.Chart,XAxis=$__0.XAxis,YAxis=$__0.YAxis;
+	var DataSeries = __webpack_require__(/*! ./DataSeries */ 451);
+	
+	var _require = __webpack_require__(/*! ../common */ 403);
+	
+	var Chart = _require.Chart;
+	var XAxis = _require.XAxis;
+	var YAxis = _require.YAxis;
+	
+	var _require2 = __webpack_require__(/*! ../mixins */ 418);
+	
+	var ViewBoxMixin = _require2.ViewBoxMixin;
+	var CartesianChartPropsMixin = _require2.CartesianChartPropsMixin;
+	
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'CandleStickChart',
 	
 	  propTypes: {
-	    data:              React.PropTypes.oneOfType([
-	                         React.PropTypes.array,
-	                         React.PropTypes.object
-	                       ]),
-	    fillUp:            React.PropTypes.func,
-	    fillUpAccessor:    React.PropTypes.func,
-	    fillDown:          React.PropTypes.func,
-	    fillDownAccessor:  React.PropTypes.func,
-	    height:            React.PropTypes.number,
-	    hoverAnimation:    React.PropTypes.bool,
-	    title:             React.PropTypes.string,
-	    xAccessor:         React.PropTypes.func,
-	    xAxisFormatter:    React.PropTypes.func,
+	    data: React.PropTypes.oneOfType([React.PropTypes.array, React.PropTypes.object]),
+	    fillUp: React.PropTypes.func,
+	    fillUpAccessor: React.PropTypes.func,
+	    fillDown: React.PropTypes.func,
+	    fillDownAccessor: React.PropTypes.func,
+	    hoverAnimation: React.PropTypes.bool,
+	    xAxisFormatter: React.PropTypes.func,
 	    xAxisTickInterval: React.PropTypes.object,
-	    xAxisTickValues:   React.PropTypes.array,
-	    yAccessor:         React.PropTypes.func,
-	    yAxisFormatter:    React.PropTypes.func,
-	    yAxisTickCount:    React.PropTypes.number,
-	    yAxisTickValues:   React.PropTypes.array,
-	    width:             React.PropTypes.number,
+	    xAxisTickValues: React.PropTypes.array,
+	    yAxisFormatter: React.PropTypes.func,
+	    yAxisTickCount: React.PropTypes.number,
+	    yAxisTickValues: React.PropTypes.array
 	  },
 	
-	  getDefaultProps:function() {
+	  mixins: [CartesianChartPropsMixin, ViewBoxMixin],
+	
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      className:        'rd3-candlestick',
-	      xAxisClassName:   'rd3-candlestick-xaxis',
-	      yAxisClassName:   'rd3-candlestick-yaxis',
-	      data:             [],
-	      fillUp:           function(value)  {return '#ffffff';},
-	      fillUpAccessor:   function(d, idx)  {return idx;},
-	      fillDown:         d3.scale.category20c(),
-	      fillDownAccessor: function(d, idx)  {return idx;},
-	      height:           200,
-	      hoverAnimation:   true,
-	      margins:          {top: 10, right: 20, bottom: 30, left: 45},
-	      legendOffset:     120,
-	      title:            '',
-	      xAccessor:        function(d)  {return d.x;},
-	      yAccessor:        function(d)  {return { open: d.open, high: d.high, low: d.low, close: d.close };},
-	      width:            400,
+	      className: 'rd3-candlestick',
+	      xAxisClassName: 'rd3-candlestick-xaxis',
+	      yAxisClassName: 'rd3-candlestick-yaxis',
+	      data: [],
+	      fillUp: function fillUp() {
+	        return '#ffffff';
+	      },
+	      fillUpAccessor: function fillUpAccessor(d, idx) {
+	        return idx;
+	      },
+	      fillDown: d3.scale.category20c(),
+	      fillDownAccessor: function fillDownAccessor(d, idx) {
+	        return idx;
+	      },
+	      hoverAnimation: true,
+	      margins: { top: 10, right: 20, bottom: 30, left: 45 },
+	      xAccessor: function xAccessor(d) {
+	        return d.x;
+	      },
+	      yAccessor: function yAccessor(d) {
+	        return { open: d.open, high: d.high, low: d.low, close: d.close };
+	      }
 	    };
 	  },
-	
-	  render:function() {
-	
+	  render: function render() {
 	    var props = this.props;
 	
-	    // Calculate inner chart dimensions
-	    var innerWidth, innerHeight;
-	    innerWidth = props.width - props.margins.left - props.margins.right;
-	    innerHeight = props.height - props.margins.top - props.margins.bottom;
+	    var _getDimensions = this.getDimensions();
+	
+	    var innerWidth = _getDimensions.innerWidth;
+	    var innerHeight = _getDimensions.innerHeight;
+	    var trans = _getDimensions.trans;
+	    var svgMargins = _getDimensions.svgMargins;
+	
+	    var yOrient = this.getYOrient();
+	    var domain = props.domain || {};
 	
 	    if (!Array.isArray(props.data)) {
 	      props.data = [props.data];
 	    }
+	    if (this.props.data && this.props.data.length < 1) {
+	      return null;
+	    }
 	    var flattenedData = utils.flattenData(props.data, props.xAccessor, props.yAccessor);
 	
-	    var allValues = flattenedData.allValues,
-	        xValues = flattenedData.xValues,
-	        yValues = flattenedData.yValues;
-	    var scales = utils.calculateScales(innerWidth, innerHeight, xValues, yValues);
+	    var xValues = flattenedData.xValues;
+	    var yValues = flattenedData.yValues;
+	    var scales = utils.calculateScales(innerWidth, innerHeight, xValues, yValues, domain.x, domain.y);
 	
-	    var trans = ("translate(" + ( props.yAxisOffset < 0 ? props.margins.left + Math.abs(props.yAxisOffset) : props.margins.left) + "," +  props.margins.top + ")");
-	
-	    var dataSeries = props.data.map( function(series, idx)  {
-	      return (
-	          React.createElement(DataSeries, {
-	            key: idx, 
-	            seriesName: series.name, 
-	            index: idx, 
-	            xScale: scales.xScale, 
-	            yScale: scales.yScale, 
-	            data: series.values, 
-	            fillUp: props.fillUp(props.fillUpAccessor(series, idx)), 
-	            fillDown: props.fillDown(props.fillDownAccessor(series, idx)), 
-	            xAccessor: props.xAccessor, 
-	            yAccessor: props.yAccessor, 
-	            hoverAnimation: props.hoverAnimation}
-	          )
-	        );
+	    var dataSeries = props.data.map(function (series, idx) {
+	      return React.createElement(DataSeries, {
+	        key: idx,
+	        seriesName: series.name,
+	        index: idx,
+	        xScale: scales.xScale,
+	        yScale: scales.yScale,
+	        data: series.values,
+	        fillUp: props.fillUp(props.fillUpAccessor(series, idx)),
+	        fillDown: props.fillDown(props.fillDownAccessor(series, idx)),
+	        xAccessor: props.xAccessor,
+	        yAccessor: props.yAccessor,
+	        hoverAnimation: props.hoverAnimation
 	      });
+	    });
 	
-	    return (
-	      React.createElement(Chart, {
-	        viewBox: props.viewBox, 
-	        width: props.width, 
-	        height: props.height, 
-	        margins: props.margins, 
+	    return React.createElement(
+	      Chart,
+	      {
+	        viewBox: this.getViewBox(),
+	        width: props.width,
+	        height: props.height,
+	        margins: props.margins,
 	        title: props.title
-	      }, 
-	        React.createElement("g", {transform: trans, className: props.className}, 
-	          React.createElement(XAxis, {
-	            xAxisClassName: props.xAxisClassName, 
-	            xScale: scales.xScale, 
-	            xAxisTickValues: props.xAxisTickValues, 
-	            xAxisTickInterval: props.xAxisTickInterval, 
-	            xAxisOffset: props.xAxisOffset, 
-	            tickFormatting: props.xAxisFormatter, 
-	            xAxisLabel: props.xAxisLabel, 
-	            xAxisLabelOffset: props.xAxisLabelOffset, 
-	            xOrient: props.xOrient, 
-	            yOrient: props.yOrient, 
-	            margins: props.margins, 
-	            width: innerWidth, 
-	            height: innerHeight, 
-	            gridVertical: props.gridVertical, 
-	            gridVerticalStroke: props.gridVerticalStroke, 
-	            gridVerticalStrokeWidth: props.gridVerticalStrokeWidth, 
-	            gridVerticalStrokeDash: props.gridVerticalStrokeDash}
-	          ), 
-	          React.createElement(YAxis, {
-	            yAxisClassName: props.yAxisClassName, 
-	            yScale: scales.yScale, 
-	            yAxisTickValues: props.yAxisTickValues, 
-	            yAxisOffset: props.yAxisOffset, 
-	            yAxisTickCount: props.yAxisTickCount, 
-	            tickFormatting: props.yAxisFormatter, 
-	            yAxisLabel: props.yAxisLabel, 
-	            yAxisLabelOffset: props.yAxisLabelOffset, 
-	            xOrient: props.xOrient, 
-	            yOrient: props.yOrient, 
-	            margins: props.margins, 
-	            width: innerWidth, 
-	            height: props.height, 
-	            gridHorizontal: props.gridHorizontal, 
-	            gridHorizontalStroke: props.gridHorizontalStroke, 
-	            gridHorizontalStrokeWidth: props.gridHorizontalStrokeWidth, 
-	            gridHorizontalStrokeDash: props.gridHorizontalStrokeDash}
-	          ), 
-	          dataSeries
-	        )
+	      },
+	      React.createElement(
+	        'g',
+	        { transform: trans, className: props.className },
+	        React.createElement(XAxis, {
+	          xAxisClassName: props.xAxisClassName,
+	          xScale: scales.xScale,
+	          xAxisTickValues: props.xAxisTickValues,
+	          xAxisTickInterval: props.xAxisTickInterval,
+	          xAxisOffset: props.xAxisOffset,
+	          tickFormatting: props.xAxisFormatter,
+	          tickStroke: props.xAxisTickStroke,
+	          tickTextStroke: props.xAxisTickTextStroke,
+	          xAxisLabel: props.xAxisLabel,
+	          xAxisLabelOffset: props.xAxisLabelOffset,
+	          xOrient: props.xOrient,
+	          yOrient: yOrient,
+	          margins: svgMargins,
+	          width: innerWidth,
+	          height: innerHeight,
+	          horizontalChart: props.horizontal,
+	          gridVertical: props.gridVertical,
+	          gridVerticalStroke: props.gridVerticalStroke,
+	          gridVerticalStrokeWidth: props.gridVerticalStrokeWidth,
+	          gridVerticalStrokeDash: props.gridVerticalStrokeDash
+	        }),
+	        React.createElement(YAxis, {
+	          yAxisClassName: props.yAxisClassName,
+	          yScale: scales.yScale,
+	          yAxisTickValues: props.yAxisTickValues,
+	          yAxisOffset: props.yAxisOffset,
+	          yAxisTickCount: props.yAxisTickCount,
+	          tickFormatting: props.yAxisFormatter,
+	          tickStroke: props.yAxisTickStroke,
+	          tickTextStroke: props.yAxisTickTextStroke,
+	          yAxisLabel: props.yAxisLabel,
+	          yAxisLabelOffset: props.yAxisLabelOffset,
+	          xOrient: props.xOrient,
+	          yOrient: yOrient,
+	          margins: svgMargins,
+	          width: innerWidth,
+	          height: props.height,
+	          horizontalChart: props.horizontal,
+	          gridHorizontal: props.gridHorizontal,
+	          gridHorizontalStroke: props.gridHorizontalStroke,
+	          gridHorizontalStrokeWidth: props.gridHorizontalStrokeWidth,
+	          gridHorizontalStrokeDash: props.gridHorizontalStrokeDash
+	        }),
+	        dataSeries
 	      )
 	    );
 	  }
-	
 	});
 
-
 /***/ },
-/* 447 */
-/*!**********************************************!*\
-  !*** ./~/react-d3/candlestick/DataSeries.js ***!
-  \**********************************************/
+/* 451 */
+/*!***************************************************!*\
+  !*** ./~/rd3/build/cjs/candlestick/DataSeries.js ***!
+  \***************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
-	var utils = __webpack_require__(/*! ../utils */ 402);
-	var CandlestickContainer = __webpack_require__(/*! ./CandlestickContainer */ 448);
-	
+	var CandlestickContainer = __webpack_require__(/*! ./CandlestickContainer */ 452);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'DataSeries',
 	
 	  propTypes: {
-	    fillUp:   React.PropTypes.string.isRequired,
+	    fillUp: React.PropTypes.string.isRequired,
 	    fillDown: React.PropTypes.string.isRequired
 	  },
 	
-	  render:function() {
-	
+	  render: function render() {
 	    var props = this.props;
 	
-	    var xRange = props.xScale.range(),
-	        width = Math.abs(xRange[0] - xRange[1]),
-	        candleWidth = (width / (props.data.length + 2)) * 0.5;
+	    var xRange = props.xScale.range();
+	    var width = Math.abs(xRange[0] - xRange[1]);
+	    var candleWidth = width / (props.data.length + 2) * 0.5;
 	
-	    var dataSeriesArray = props.data.map( function(d, idx) {
+	    var dataSeriesArray = props.data.map(function (d, idx) {
 	      // Candles
-	      var ohlc = props.yAccessor(d),
-	        candle_x = props.xScale(props.xAccessor(d)) - 0.5 * candleWidth,
-	        candle_y = props.yScale(Math.max(ohlc.open, ohlc.close)),
-	        candleHeight = Math.abs(props.yScale(ohlc.open) - props.yScale(ohlc.close)),
-	        wick_y2 = props.yScale(ohlc.low),
-	        ohlcClass = (ohlc.open <= ohlc.close) ? 'up' : 'down',
-	        className = ( ohlcClass + " rd3-candlestick-rect"),
-	        candleFill = (ohlc.open <= ohlc.close) ? props.fillUp : props.fillDown;
+	      var ohlc = props.yAccessor(d);
+	      var candleX = props.xScale(props.xAccessor(d)) - 0.5 * candleWidth;
+	      var candleY = props.yScale(Math.max(ohlc.open, ohlc.close));
+	      var candleHeight = Math.abs(props.yScale(ohlc.open) - props.yScale(ohlc.close));
+	      var wickY2 = props.yScale(ohlc.low);
+	      var candleFill = ohlc.open <= ohlc.close ? props.fillUp : props.fillDown;
 	
-	      //Wicks
-	      var wick_x1 = props.xScale(props.xAccessor(d)),
-	        wick_y1 = props.yScale(ohlc.high),
-	        wick_x2 = wick_x1;
+	      // Wicks
+	      var wickX1 = props.xScale(props.xAccessor(d));
+	      var wickY1 = props.yScale(ohlc.high);
+	      var wickX2 = wickX1;
 	
-	      return (
-	        React.createElement(CandlestickContainer, {
-	          key: idx, 
-	          candleFill: candleFill, 
-	          candleHeight: candleHeight, 
-	          candleWidth: candleWidth, 
-	          candle_x: candle_x, 
-	          candle_y: candle_y, 
-	          wick_x1: wick_x1, 
-	          wick_x2: wick_x2, 
-	          wick_y1: wick_y1, 
-	          wick_y2: wick_y2, 
-	          hoverAnimation: props.hoverAnimation}
-	        )
-	      );
+	      return React.createElement(CandlestickContainer, {
+	        key: idx,
+	        candleFill: candleFill,
+	        candleHeight: candleHeight,
+	        candleWidth: candleWidth,
+	        candleX: candleX,
+	        candleY: candleY,
+	        wickX1: wickX1,
+	        wickX2: wickX2,
+	        wickY1: wickY1,
+	        wickY2: wickY2,
+	        hoverAnimation: props.hoverAnimation
+	      });
 	    }, this);
 	
-	    return (
-	      React.createElement("g", null, 
-	        dataSeriesArray
-	      )
+	    return React.createElement(
+	      'g',
+	      null,
+	      dataSeriesArray
 	    );
 	  }
-	
 	});
 
-
 /***/ },
-/* 448 */
-/*!********************************************************!*\
-  !*** ./~/react-d3/candlestick/CandlestickContainer.js ***!
-  \********************************************************/
+/* 452 */
+/*!*************************************************************!*\
+  !*** ./~/rd3/build/cjs/candlestick/CandlestickContainer.js ***!
+  \*************************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
-	var d3 = __webpack_require__(/*! d3 */ 398);
 	var utils = __webpack_require__(/*! ../utils */ 402);
-	var Candle = __webpack_require__(/*! ./Candle */ 449);
-	var Wick = __webpack_require__(/*! ./Wick */ 450);
+	var Candle = __webpack_require__(/*! ./Candle */ 453);
+	var Wick = __webpack_require__(/*! ./Wick */ 454);
 	
 	module.exports = React.createClass({
 	
 	  displayName: 'CandleStickContainer',
 	
 	  propTypes: {
-	    candle_x:       React.PropTypes.number,
-	    candle_y:       React.PropTypes.number,
-	    className:      React.PropTypes.string,
-	    candleFill:     React.PropTypes.string,
-	    candleHeight:   React.PropTypes.number,
-	    candleWidth:    React.PropTypes.number,
-	    wick_x1:        React.PropTypes.number,
-	    wick_x2:        React.PropTypes.number,
-	    wick_y1:        React.PropTypes.number,
-	    wick_y2:        React.PropTypes.number,
+	    candleX: React.PropTypes.number,
+	    candleY: React.PropTypes.number,
+	    className: React.PropTypes.string,
+	    candleFill: React.PropTypes.string,
+	    candleHeight: React.PropTypes.number,
+	    candleWidth: React.PropTypes.number,
+	    wickX1: React.PropTypes.number,
+	    wickX2: React.PropTypes.number,
+	    wickY1: React.PropTypes.number,
+	    wickY2: React.PropTypes.number
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
 	      className: 'rd3-candlestick-container'
 	    };
 	  },
-	
-	  getInitialState:function() {
+	  getInitialState: function getInitialState() {
 	    // state for animation usage
 	    return {
 	      candleWidth: this.props.candleWidth,
 	      candleFill: this.props.candleFill
 	    };
 	  },
-	
-	  render:function() {
-	
+	  _animateCandle: function _animateCandle() {
+	    this.setState({
+	      candleWidth: this.props.candleWidth * 1.5,
+	      candleFill: utils.shade(this.props.candleFill, -0.2)
+	    });
+	  },
+	  _restoreCandle: function _restoreCandle() {
+	    this.setState({
+	      candleWidth: this.props.candleWidth,
+	      candleFill: this.props.candleFill
+	    });
+	  },
+	  render: function render() {
 	    var props = this.props;
 	    var state = this.state;
 	
 	    // animation controller
-	    var handleMouseOver, handleMouseLeave;
-	    if(props.hoverAnimation) {
+	    var handleMouseOver = void 0;
+	    var handleMouseLeave = void 0;
+	    if (props.hoverAnimation) {
 	      handleMouseOver = this._animateCandle;
 	      handleMouseLeave = this._restoreCandle;
 	    } else {
 	      handleMouseOver = handleMouseLeave = null;
 	    }
 	
-	    return (
-	      React.createElement("g", {className: props.className}, 
-	       React.createElement(Wick, {
-	         wick_x1: props.wick_x1, 
-	         wick_x2: props.wick_x2, 
-	         wick_y1: props.wick_y1, 
-	         wick_y2: props.wick_y2}
-	       ), 
-	       React.createElement(Candle, {
-	         candleFill: state.candleFill, 
-	         candleWidth: state.candleWidth, 
-	         candle_x: props.candle_x - ((state.candleWidth - props.candleWidth) / 2), 
-	         candle_y: props.candle_y, 
-	         candleHeight: props.candleHeight, 
-	         handleMouseOver: handleMouseOver, 
-	         handleMouseLeave: handleMouseLeave}
-	       )
-	      )
+	    return React.createElement(
+	      'g',
+	      { className: props.className },
+	      React.createElement(Wick, {
+	        wickX1: props.wickX1,
+	        wickX2: props.wickX2,
+	        wickY1: props.wickY1,
+	        wickY2: props.wickY2
+	      }),
+	      React.createElement(Candle, {
+	        candleFill: state.candleFill,
+	        candleWidth: state.candleWidth,
+	        candleX: props.candleX - (state.candleWidth - props.candleWidth) / 2,
+	        candleY: props.candleY,
+	        candleHeight: props.candleHeight,
+	        handleMouseOver: handleMouseOver,
+	        handleMouseLeave: handleMouseLeave
+	      })
 	    );
-	  },
-	
-	  _animateCandle:function() {
-	    this.setState({ 
-	      candleWidth: this.props.candleWidth * 1.5,
-	      candleFill: utils.shade(this.props.candleFill, -0.2)
-	    });
-	  },
-	
-	  _restoreCandle:function() {
-	    this.setState({ 
-	      candleWidth: this.props.candleWidth,
-	      candleFill: this.props.candleFill
-	    });
-	  },
-	
+	  }
 	});
 
-
 /***/ },
-/* 449 */
-/*!******************************************!*\
-  !*** ./~/react-d3/candlestick/Candle.js ***!
-  \******************************************/
+/* 453 */
+/*!***********************************************!*\
+  !*** ./~/rd3/build/cjs/candlestick/Candle.js ***!
+  \***********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -49274,92 +49776,83 @@
 	  displayName: 'Candle',
 	
 	  propTypes: {
-	    className:      React.PropTypes.string,
+	    className: React.PropTypes.string,
 	    shapeRendering: React.PropTypes.string,
-	    stroke:         React.PropTypes.string,
-	    strokeWidth:    React.PropTypes.number,
+	    stroke: React.PropTypes.string,
+	    strokeWidth: React.PropTypes.number
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      className:      'rd3-candlestick-candle',
+	      className: 'rd3-candlestick-candle',
 	      shapeRendering: 'crispEdges',
-	      stroke:         '#000',
-	      strokeWidth:    1,
+	      stroke: '#000',
+	      strokeWidth: 1
 	    };
 	  },
-	
-	  render:function() {
+	  render: function render() {
 	    var props = this.props;
 	
-	    return (
-	      React.createElement("rect", {
-	        className: props.className, 
-	        fill: props.candleFill, 
-	        x: props.candle_x, 
-	        y: props.candle_y, 
-	        stroke: props.stroke, 
-	        strokeWidth: props.strokeWidth, 
-	        style: { shapeRendering: props.shapeRendering}, 
-	        width: props.candleWidth, 
-	        height: props.candleHeight, 
-	        onMouseOver: props.handleMouseOver, 
-	        onMouseLeave: props.handleMouseLeave}
-	      )
-	    );
+	    return React.createElement('rect', {
+	      className: props.className,
+	      fill: props.candleFill,
+	      x: props.candleX,
+	      y: props.candleY,
+	      stroke: props.stroke,
+	      strokeWidth: props.strokeWidth,
+	      style: { shapeRendering: props.shapeRendering },
+	      width: props.candleWidth,
+	      height: props.candleHeight,
+	      onMouseOver: props.handleMouseOver,
+	      onMouseLeave: props.handleMouseLeave
+	    });
 	  }
-	
 	});
 
-
 /***/ },
-/* 450 */
-/*!****************************************!*\
-  !*** ./~/react-d3/candlestick/Wick.js ***!
-  \****************************************/
+/* 454 */
+/*!*********************************************!*\
+  !*** ./~/rd3/build/cjs/candlestick/Wick.js ***!
+  \*********************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var React = __webpack_require__(/*! react */ 2);
 	
-	
 	module.exports = React.createClass({
 	
 	  displayName: 'Wick',
 	
 	  propTypes: {
-	    className:      React.PropTypes.string,
+	    className: React.PropTypes.string,
 	    shapeRendering: React.PropTypes.string,
-	    stroke:         React.PropTypes.string,
-	    strokeWidth:    React.PropTypes.number,
+	    stroke: React.PropTypes.string,
+	    strokeWidth: React.PropTypes.number
 	  },
 	
-	  getDefaultProps:function() {
+	  getDefaultProps: function getDefaultProps() {
 	    return {
-	      className:      'rd3-candlestick-wick',
-	      stroke:         '#000',
-	      strokeWidth:    1,
-	      shapeRendering: 'crispEdges',
+	      className: 'rd3-candlestick-wick',
+	      stroke: '#000',
+	      strokeWidth: 1,
+	      shapeRendering: 'crispEdges'
 	    };
 	  },
-	
-	  render:function() {
+	  render: function render() {
 	    var props = this.props;
-	    return React.createElement("line", {
-	            stroke: props.stroke, 
-	            strokeWidth: props.strokeWidth, 
-	            style: { shapeRendering: props.shapeRendering}, 
-	            className: props.className, 
-	            x1: props.wick_x1, 
-	            y1: props.wick_y1, 
-	            x2: props.wick_x2, 
-	            y2: props.wick_y2}
-	          );
+	    return React.createElement('line', {
+	      stroke: props.stroke,
+	      strokeWidth: props.strokeWidth,
+	      style: { shapeRendering: props.shapeRendering },
+	      className: props.className,
+	      x1: props.wickX1,
+	      y1: props.wickY1,
+	      x2: props.wickX2,
+	      y2: props.wickY2
+	    });
 	  }
-	
 	});
-
 
 /***/ }
 /******/ ]);
