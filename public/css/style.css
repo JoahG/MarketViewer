@@ -1,0 +1,29 @@
+body {
+  font-family: Roboto, sans-serif;
+  margin: 0;
+}
+
+header h1 {
+  font-weight: 300;
+  text-align: center;
+  padding: 30px 15px;
+  margin: 0;
+}
+
+main {
+  display: flex;
+}
+
+aside.MarketList, section.MarketChart {
+  max-height: calc(100vh - 98px);
+  overflow-y: scroll;
+}
+
+aside.MarketList {
+  flex: 0 1 350px;
+  border-right: 1px solid #e0e0e0;
+}
+
+section.MarketChart {
+  flex: 1 0 0;
+}

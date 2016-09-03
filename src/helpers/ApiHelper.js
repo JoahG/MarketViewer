@@ -1,3 +1,5 @@
+'use strict';
+
 class ApiHelper {
   constructor(resource, callback, queryObj) {
     this.request = new XMLHttpRequest();
@@ -7,7 +9,7 @@ class ApiHelper {
     
     this.request.open('get', url);
     this.request.setRequestHeader('Content-Type', 'application/json');
-    this.request.onload = callback;
+    this.request.addEventListener('load', callback);
     this.request.send();
   }
 }

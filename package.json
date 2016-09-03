@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "author": "Joah Gerstenberg",
   "dependencies": {
-    "http": "0.0.0",
+    "highcharts": "^4.2.6",
     "https": "^1.0.0",
+    "jsx-loader": "^0.13.2",
+    "material-ui": "^0.15.4",
     "react": "^0.14.7",
-    "react-dom": "^0.14.7"
+    "react-dom": "^0.14.7",
+    "react-highcharts": "^10.0.0",
+    "react-tap-event-plugin": "^1.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.5.1",
