@@ -39,6 +39,6 @@ section.MarketChart .chart-wrapper > div {
 }
 
 main > .drawer-wrapper > div {
-    margin-top:  64px;
-    max-height: calc(100% - 64px);
+  margin-top:  64px;
+  max-height: calc(100% - 64px);
 }

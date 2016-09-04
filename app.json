@@ -1,0 +1,15 @@
+{
+  "name": "MarketViewer",
+  "description": "SPA to view market data from Coinigy's API",
+  "repository": "https://github.com/JoahG/MarketViewer",
+  "logo": "https://node-js-sample.herokuapp.com/node.png",
+  "keywords": ["node", "express", "react", "webpack", "coinigy"],
+  "env": {
+    "COINIGY_API_KEY": {
+      "description": "API Key for Coinigy's public API"
+    },
+    "COINIGY_API_SECRET": {
+      "description": "API Secret for Coinigy's public API"
+    }
+  }
+}

@@ -1,4 +1,6 @@
-let webpack = require('webpack');
+'use script';
+
+var webpack = require('webpack');
 
 module.exports = {
   cache: true,
