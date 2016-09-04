@@ -68,22 +68,12 @@ class MarketChartComponent extends React.Component {
         parseFloat(data[key][0].price),
         (() => {
           return parseFloat(data[key].sort(function(a, b) {
-            let _a = parseFloat(a.price);
-            let _b = parseFloat(b.price);
-
-            if (_a < _b) return 1;
-            if (_a > _b) return -1;
-            return 0;
+            return parseFloat(b.price) - parseFloat(a.price);
           })[0].price);
         })(), 
         (() => {
           return parseFloat(data[key].sort(function(a, b) {
-            let _a = parseFloat(a.price);
-            let _b = parseFloat(b.price);
-
-            if (_a < _b) return 1;
-            if (_a > _b) return -1;
-            return 0;
+            return parseFloat(a.price) - parseFloat(b.price);
           })[0].price);
         })(), 
         parseFloat(data[key][data[key].length - 1].price)
