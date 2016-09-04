@@ -6,12 +6,9 @@
   "repository": "https://github.com/JoahG/MarketViewer",
   "license": "MIT",
   "dependencies": {
-    "d3": "^3.5.0",
     "https": "^1.0.0",
     "material-ui": "^0.15.4",
-    "rd3": "^0.7.1",
     "react": "^15.3.1",
-    "react-d3": "^0.4.0",
     "react-dom": "^15.3.1",
     "react-tap-event-plugin": "^1.0.0"
   },

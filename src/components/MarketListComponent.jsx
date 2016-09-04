@@ -105,7 +105,7 @@ class MarketListComponent extends React.Component {
           {
             this.state.exchanges.map(function(exchange, i) {
               let markets = exchange.markets.map(function(market, i) {
-                return <ListItem key={ 'market' + i } primaryText={ market.mkt_name } rightIcon={ <InputIcon /> } onClick={ () => parent.updateActiveMarket(market, exchange) } onTouchTap={ () => parent.updateActiveMarket(market, exchange) } />
+                return <ListItem key={ 'market' + i } primaryText={ market.mkt_name } rightIcon={ <InputIcon /> } onTouchTap={ () => parent.updateActiveMarket(market, exchange) } />
               });
 
               if (markets.length == 0) {
@@ -115,7 +115,7 @@ class MarketListComponent extends React.Component {
               }
 
               return (
-                <ListItem key={ i } open={ exchange.isOpen } onClick={ () => parent.loadMarkets(exchange) } onTouchTap={ () => parent.loadMarkets(exchange) } primaryText={ exchange.exch_name } primaryTogglesNestedList={ true } nestedItems={ markets }/>
+                <ListItem key={ i } open={ exchange.isOpen } onNestedListToggle={ () => parent.loadMarkets(exchange) } primaryText={ exchange.exch_name } primaryTogglesNestedList={ true } nestedItems={ markets }/>
               );
             })
           }

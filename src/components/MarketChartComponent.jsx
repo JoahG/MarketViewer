@@ -1,7 +1,9 @@
 'use strict';
 
 import React from 'react';
-import { LineChart } from 'rd3';
+import Chart from //?;
+import SelectField from 'material-ui/SelectField';
+import MenuItem from 'material-ui/MenuItem';
 
 class MarketChartComponent extends React.Component {
   constructor(props) {
@@ -10,59 +12,167 @@ class MarketChartComponent extends React.Component {
     this.state = {
       isLoading: false,
       isEmpty: true,
-      chartConfig: {
-        title: this.props.selectedMarket.mkt_name,
-        width: 800,
-        height: 500,
-        data: [{
-          name: 'series 1',
-          values: [{x: 0, y: 0}]
-        }]
+      viewBy: 'hour',
+      chartData: {
+        ohlc: [],
+        volume: []
       }
+    }
+
+    this.handleViewByChange = (e, i, v) => {
+      this.setState({
+        viewBy: v
+      }, () => this.processData());
     }
   }
 
   componentWillReceiveProps(nextProps) {
     this.setState({
       isEmpty: false,
-      isLoading: !nextProps.selectedMarket.dataIsLoaded,
-      chartConfig: {
-        title: nextProps.selectedMarket.mkt_name,
-        width: this.refs["chart-wrapper"].offsetWidth,
-        height: this.refs["chart-wrapper"].offsetHeight,
-        data: [{
-          name: 'series 1',
-          values: nextProps.selectedMarket.data.map(function(dataPoint) {
-            return {
-              y: parseFloat(dataPoint.price),
-              x: dataPoint.time_local
-            };
-          })
-        }]
+      isLoading: !nextProps.selectedMarket.dataIsLoaded
+    });
+
+    if (nextProps.selectedMarket.dataIsLoaded) {
+      this.processData(nextProps.selectedMarket.data);
+    }
+  }
+
+  processData(curData = this.props.selectedMarket.data) {
+    let parent = this;
+
+    let data = curData.reduce(function(u, n) {
+      let date = new Date(n.time_local);
+
+      if (parent.state.viewBy == 'hour') date.setMinutes(0);
+
+      date.setSeconds(0);
+      date = (+date).toString();
+
+      if (!u.hasOwnProperty(date)) u[date] = [];
+      u[date].push(n);
+
+      return u;
+    }, {});
+
+    let ohlc = Object.keys(data).map(function(key) {
+      return [
+        parseInt(key),
+        parseFloat(data[key][0].price),
+        (() => {
+          return parseFloat(data[key].sort(function(a, b) {
+            let _a = parseFloat(a.price);
+            let _b = parseFloat(b.price);
+
+            if (_a < _b) return 1;
+            if (_a > _b) return -1;
+            return 0;
+          })[0].price);
+        })(), 
+        (() => {
+          return parseFloat(data[key].sort(function(a, b) {
+            let _a = parseFloat(a.price);
+            let _b = parseFloat(b.price);
+
+            if (_a > _b) return 1;
+            if (_a < _b) return -1;
+            return 0;
+          })[0].price);
+        })(), 
+        parseFloat(data[key][data[key].length - 1].price)
+      ];
+    });
+
+    let volume = Object.keys(data).map(function(key) {
+      return [
+        parseInt(key),
+        (() => {
+          return data[key].reduce(function(i, b) {
+            i += parseFloat(b.quantity);
+            return i;
+          }, 0);
+        })()
+      ];
+    });
+
+    this.setState({
+      chartData: {
+        ohlc: ohlc,
+        volume: volume
       }
     });
   }
 
   render() {
+    const chartConfig = {
+      rangeSelector: {
+        selected: 1,
+      },
+      title: {
+        text: this.props.selectedMarket.mkt_name
+      },
+      yAxis: [{
+        labels: {
+          align: 'right',
+          x: -3
+        },
+        title: {
+          text: 'OHLC'
+        },
+        height: '60%',
+        lineWidth: 2
+      }, {
+        labels: {
+          align: 'right',
+          x: -3
+        }, 
+        title: {
+          text: 'Volume'
+        },
+        top: '65%',
+        height: '35%',
+        offset: 0,
+        lineWidth: 2
+      }],
+
+      series: [{
+        type: 'candlestick',
+        name: this.props.selectedMarket.mkt_name,
+        data: this.state.chartData.ohlc,
+        dataGrouping: {
+          units: [[
+            'hour',
+            [1]
+          ], [
+            'month',
+            [1, 2, 3, 4, 5, 6]
+          ]]
+        }
+      }, {
+        type: 'column',
+        name: 'Volume',
+        data: this.state.chartData.volume,
+        yAxis: 1,
+        dataGrouping: {
+          units: [[
+            'hour',
+            [1]
+          ], [
+            'month',
+            [1, 2, 3, 4, 5, 6]
+          ]]
+        }
+      }]
+    }
+
     return (
       <section className={ 'MarketChart' + (this.state.isLoading ? ' loading' : '') + (this.state.isEmpty ? ' empty' : '')}>
-        <div ref="chart-wrapper" className="chart-wrapper">
-          <LineChart 
-            width={ this.state.chartConfig.width }
-            height={ this.state.chartConfig.height }
-            data={ this.state.chartConfig.data } 
-            xAxisTickInterval={ { unit: 'hour', interval: 1 } } 
-            xAccessor={ (d) => {
-              return new Date(d.x);
-            }}
-            yAccessor={ (d) => d.y}
-            margins={ {
-              top: 20,
-              right: 30,
-              bottom: 50,
-              left: 75
-            } }
-          />
+        <h2>{ this.props.selectedMarket.mkt_name }</h2>
+        <SelectField value={ this.state.viewBy } onChange={ this.handleViewByChange } floatingLabelText="View By">
+          <MenuItem value="hour" primaryText="Hours" />
+          <MenuItem value="minute" primaryText="Minutes" />
+        </SelectField>
+        <div>
+          <Chart config={ chartConfig } />
         </div>
       </section>
     );
