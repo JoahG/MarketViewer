@@ -102,6 +102,7 @@ class MarketListComponent extends React.Component {
     return (
       <aside className="MarketList">
         <List>
+          <Subheader>Exchanges</Subheader>
           {
             this.state.exchanges.map(function(exchange, i) {
               let markets = exchange.markets.map(function(market, i) {

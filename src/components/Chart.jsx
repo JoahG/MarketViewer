@@ -1,7 +1,7 @@
 'use strict';
 
 import React from 'react';
-import Chart from //?;
+import Chart from 'react-highcharts/bundle/ReactHighstock';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 
@@ -37,6 +37,14 @@ class MarketChartComponent extends React.Component {
     }
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    if (this.state.viewBy !== nextState.viewBy) return true;
+    if (JSON.stringify(this.state.chartData) !== JSON.stringify(nextState.chartData)) return true;
+    if (!this.state.isLoading && this.props.selectedMarket.mkt_name == nextProps.selectedMarket.mkt_name) return false;
+    if (!nextProps.selectedMarket.hasOwnProperty('mkt_name')) return false;
+    return true;
+  }
+
   processData(curData = this.props.selectedMarket.data) {
     let parent = this;
 
@@ -44,8 +52,8 @@ class MarketChartComponent extends React.Component {
       let date = new Date(n.time_local);
 
       if (parent.state.viewBy == 'hour') date.setMinutes(0);
-
-      date.setSeconds(0);
+      if (parent.state.viewBy == 'hour' || parent.state.viewBy == 'minute') date.setSeconds(0);
+      
       date = (+date).toString();
 
       if (!u.hasOwnProperty(date)) u[date] = [];
@@ -73,14 +81,21 @@ class MarketChartComponent extends React.Component {
             let _a = parseFloat(a.price);
             let _b = parseFloat(b.price);
 
-            if (_a > _b) return 1;
-            if (_a < _b) return -1;
+            if (_a < _b) return 1;
+            if (_a > _b) return -1;
             return 0;
           })[0].price);
         })(), 
         parseFloat(data[key][data[key].length - 1].price)
       ];
-    });
+    }).sort(function(a, b) {
+      let _a = new Date(a[0]);
+      let _b = new Date(b[0]);
+
+      if (_a > _b) return 1;
+      if (_a < _b) return -1;
+      return 0;
+    });;
 
     let volume = Object.keys(data).map(function(key) {
       return [
@@ -92,6 +107,13 @@ class MarketChartComponent extends React.Component {
           }, 0);
         })()
       ];
+    }).sort(function(a, b) {
+      let _a = new Date(a[0]);
+      let _b = new Date(b[0]);
+
+      if (_a > _b) return 1;
+      if (_a < _b) return -1;
+      return 0;
     });
 
     this.setState({
@@ -105,10 +127,10 @@ class MarketChartComponent extends React.Component {
   render() {
     const chartConfig = {
       rangeSelector: {
-        selected: 1,
+        enabled: false
       },
       title: {
-        text: this.props.selectedMarket.mkt_name
+        text: ''
       },
       yAxis: [{
         labels: {
@@ -170,8 +192,9 @@ class MarketChartComponent extends React.Component {
         <SelectField value={ this.state.viewBy } onChange={ this.handleViewByChange } floatingLabelText="View By">
           <MenuItem value="hour" primaryText="Hours" />
           <MenuItem value="minute" primaryText="Minutes" />
+          <MenuItem value="second" primaryText="Seconds" />
         </SelectField>
-        <div>
+        <div className="chart-wrapper">
           <Chart config={ chartConfig } />
         </div>
       </section>

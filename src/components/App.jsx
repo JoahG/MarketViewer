@@ -2,13 +2,13 @@
 
 import React from 'react';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import MarketViewer from './MarketViewerComponent.jsx';
+import View from './View.jsx';
 
 class AppComponent extends React.Component {
   render() {
     return (
       <MuiThemeProvider>
-        <MarketViewer />
+        <View />
       </MuiThemeProvider>
     );
   }
